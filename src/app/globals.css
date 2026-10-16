@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/*
+ * Fabrik Finance design tokens.
+ * Neutral warm surfaces, high-contrast ink, one restrained forest-green brand accent.
+ * Semantic roles: AI suggestion (violet-tinted), verified (green), pending review (amber),
+ * action needed (rust), critical (red). Chart series validated with the dataviz validator:
+ * #1f7a55 / #e8913a / #2a78d6 (all-pairs CVD ΔE ≥ 15.7; amber needs labels/table — provided).
+ */
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+  --color-canvas: #f6f6f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafaf8;
+  --color-sunken: #f1f1ed;
+  --color-line: #e5e4de;
+  --color-line-strong: #d4d3cb;
+
+  --color-ink: #161a17;
+  --color-ink-2: #3d433f;
+  --color-muted: #646b66;
+  --color-subtle: #8b918c;
+
+  --color-brand-50: #eef6f1;
+  --color-brand-100: #dcede3;
+  --color-brand-200: #b7d9c5;
+  --color-brand-300: #86bc9e;
+  --color-brand-500: #2f7f5a;
+  --color-brand-600: #1f6b4a;
+  --color-brand-700: #17573c;
+  --color-brand-800: #11432e;
+  --color-brand-900: #0b2e20;
+
+  --color-ai-50: #f3f1fd;
+  --color-ai-100: #e7e3fb;
+  --color-ai-500: #6650d1;
+  --color-ai-600: #5641bd;
+  --color-ai-700: #46339e;
+
+  --color-ok-50: #ecf7ef;
+  --color-ok-600: #1d7a3e;
+  --color-warn-50: #fdf5e4;
+  --color-warn-500: #c98a12;
+  --color-warn-700: #8a5c06;
+  --color-risk-50: #fdf0ea;
+  --color-risk-600: #b4501f;
+  --color-crit-50: #fcecec;
+  --color-crit-600: #b42828;
+  --color-info-50: #edf3fc;
+  --color-info-600: #2463b8;
+
+  --color-series-1: #1f7a55;
+  --color-series-2: #e8913a;
+  --color-series-3: #2a78d6;
+
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgba(22, 26, 23, 0.04), 0 1px 1px rgba(22, 26, 23, 0.03);
+  --shadow-pop: 0 12px 32px -8px rgba(22, 26, 23, 0.18), 0 2px 6px rgba(22, 26, 23, 0.06);
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-canvas);
+  font-feature-settings: "cv11", "ss01";
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--color-brand-100);
+}
+
+/* Hatch used for "estimated" amounts (texture = secondary encoding beside color). */
+.hatch {
+  background-image: repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 5px);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-in { animation: fade-in 160ms ease-out both; }
+
+@keyframes slide-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.animate-drawer { animation: slide-in 180ms cubic-bezier(.2,.8,.2,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in, .animate-drawer { animation: none; }
+}
+
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+  .print-full { box-shadow: none !important; border: none !important; }
+}
+
+/* Scrollbars that don't shout */
+* { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }

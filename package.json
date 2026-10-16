@@ -1,0 +1,43 @@
+{
+  "name": "fabrik-finance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fabrik Finance — AI Finance for Land & Agriculture. Bookkeeping, financial intelligence, funding discovery and finance operations.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:reset": "node --experimental-strip-types scripts/reset-db.ts",
+    "docs:requirements": "node --experimental-strip-types scripts/export-requirements.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "clsx": "2.1.1",
+    "exceljs": "4.4.0",
+    "lucide-react": "1.58.0",
+    "next": "16.4.2",
+    "pdf-lib": "1.17.1",
+    "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "recharts": "3.10.1",
+    "server-only": "^0.0.1",
+    "unpdf": "1.9.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.19.2",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
