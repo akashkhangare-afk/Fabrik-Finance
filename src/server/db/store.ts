@@ -11,7 +11,11 @@ import { buildSeed, SCHEMA_VERSION } from "./seed";
  * directly from route handlers or components.
  */
 
-const DATA_DIR = path.resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.FABRIK_DATA_DIR || ".data");
+// Serverless hosts (Vercel) have a read-only deployment directory; only /tmp is writable there.
+const DATA_DIR = path.resolve(
+  /*turbopackIgnore: true*/ process.cwd(),
+  process.env.FABRIK_DATA_DIR || (process.env.VERCEL ? "/tmp/fabrik-data" : ".data"),
+);
 const PERSIST = process.env.FABRIK_PERSIST !== "false";
 const FILE = path.join(DATA_DIR, "fabrik-db.json");
 
