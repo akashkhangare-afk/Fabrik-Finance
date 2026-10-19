@@ -37,7 +37,7 @@ export function ForecastWeeks({ weeks, buffer }: { weeks: ForecastWeek[]; buffer
   const [open, setOpen] = useState<number | null>(1);
   return (
     <Card className="overflow-hidden">
-      <CardHeader title="Week by week" subtitle="Expand a week to see every inflow and outflow and where it came from" />
+      <CardHeader title="Week by week" />
       <div className="overflow-x-auto">
         <table className="w-full text-[13px]">
           <thead>

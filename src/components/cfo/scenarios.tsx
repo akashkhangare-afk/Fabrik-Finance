@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Building, HandCoins, Tractor, TrendingDown, Users, Sparkles, Save } from "lucide-react";
+import { Building, HandCoins, Tractor, TrendingDown, Users, Save } from "lucide-react";
 import type { ScenarioType } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { money, moneyCompact } from "@/lib/format";
 import { SCENARIO_DEFAULTS, SCENARIO_TITLES, type ScenarioInputs } from "@/server/engines/scenarios";
 import { computeScenario, saveScenario } from "@/app/actions/app";
-import { Badge, Button, Card, CardHeader, Field, Input, Notice, Skeleton } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Field, Input, Notice, Skeleton } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/client";
 import { ScenarioChart } from "@/components/charts";
 
@@ -19,6 +19,7 @@ const TYPES: { type: ScenarioType; icon: typeof Building; blurb: string }[] = [
   { type: "customer_default", icon: HandCoins, blurb: "Largest customer stops paying" },
 ];
 
+/** Inputs per scenario; the first HEADLINE[type] are shown, the rest sit under "More assumptions". */
 const FIELDS: Record<ScenarioType, { key: keyof ScenarioInputs; label: string; suffix?: string; prefix?: string; min?: number; max?: number }[]> = {
   land_purchase: [
     { key: "price", label: "Purchase price", prefix: "$" },
@@ -47,9 +48,11 @@ const FIELDS: Record<ScenarioType, { key: keyof ScenarioInputs; label: string; s
   customer_default: [],
 };
 
+const HEADLINE: Record<ScenarioType, number> = { land_purchase: 2, equipment_purchase: 2, hire_employees: 2, revenue_change: 1, customer_default: 0 };
+
 type Result = Extract<Awaited<ReturnType<typeof computeScenario>>, { ok: true }>["data"];
 
-export function ScenarioLab({ initialType, initialInputs }: { initialType: ScenarioType; initialInputs: Record<string, number> }) {
+export function ScenarioLab({ initialType, initialInputs, canSave }: { initialType: ScenarioType; initialInputs: Record<string, number>; canSave: boolean }) {
   const [type, setType] = useState<ScenarioType>(initialType);
   const [inputs, setInputs] = useState<ScenarioInputs>({ ...SCENARIO_DEFAULTS[initialType], ...initialInputs });
   const [result, setResult] = useState<Result>();
@@ -71,6 +74,15 @@ export function ScenarioLab({ initialType, initialInputs }: { initialType: Scena
     setResult(undefined);
   };
   const r = result;
+  const input = (f: (typeof FIELDS)[ScenarioType][number]) => (
+    <Field key={f.key} label={f.label} htmlFor={`sc-${f.key}`}>
+      <div className="relative">
+        {f.prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[13px]">{f.prefix}</span>}
+        <Input id={`sc-${f.key}`} inputMode="decimal" value={String(inputs[f.key] ?? "")} onChange={(e) => setInputs({ ...inputs, [f.key]: Number(e.target.value.replace(/[,$%]/g, "")) || 0 })} className={cn(f.prefix && "pl-6", f.suffix && "pr-10")} />
+        {f.suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-[13px]">{f.suffix}</span>}
+      </div>
+    </Field>
+  );
   const verdictTone = r?.verdict.level === "comfortable" ? "ok" : r?.verdict.level === "caution" ? "warn" : "crit";
   return (
     <div className="space-y-5">
@@ -86,21 +98,19 @@ export function ScenarioLab({ initialType, initialInputs }: { initialType: Scena
 
       <div className="grid xl:grid-cols-[340px_minmax(0,1fr)] gap-5">
         <Card className="h-fit">
-          <CardHeader title="Inputs" subtitle="Change anything — results update when you run it" />
+          <CardHeader title="Inputs" />
           <form className="px-5 pb-5 space-y-3" onSubmit={(e) => { e.preventDefault(); run(type, inputs); }}>
             {FIELDS[type].length === 0 && <p className="text-[13px] text-muted">Uses your largest open receivable from Collect — no inputs needed.</p>}
-            {FIELDS[type].map((f) => (
-              <Field key={f.key} label={f.label} htmlFor={`sc-${f.key}`}>
-                <div className="relative">
-                  {f.prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[13px]">{f.prefix}</span>}
-                  <Input id={`sc-${f.key}`} inputMode="decimal" value={String(inputs[f.key] ?? "")} onChange={(e) => setInputs({ ...inputs, [f.key]: Number(e.target.value.replace(/[,$%]/g, "")) || 0 })} className={cn(f.prefix && "pl-6", f.suffix && "pr-10")} />
-                  {f.suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-[13px]">{f.suffix}</span>}
-                </div>
-              </Field>
-            ))}
+            {FIELDS[type].slice(0, HEADLINE[type]).map(input)}
+            {FIELDS[type].length > HEADLINE[type] && (
+              <details className="pt-1">
+                <summary className="cursor-pointer text-[13px] text-brand-700 font-medium">More assumptions</summary>
+                <div className="space-y-3 mt-3">{FIELDS[type].slice(HEADLINE[type]).map(input)}</div>
+              </details>
+            )}
             <div className="flex gap-2 pt-1">
               <Button type="submit" variant="primary" className="flex-1" disabled={pending}>{pending ? "Calculating…" : "Run scenario"}</Button>
-              <Button type="button" disabled={pending || !r} onClick={async () => { const s = await saveScenario(type, `${SCENARIO_TITLES[type]} · ${new Date().toLocaleDateString()}`, inputs); toast(s.ok ? { tone: "success", title: s.message ?? "Saved" } : { tone: "error", title: s.error }); }} aria-label="Save scenario"><Save className="size-4" /></Button>
+              {canSave && <Button type="button" disabled={pending || !r} onClick={async () => { const s = await saveScenario(type, `${SCENARIO_TITLES[type]} · ${new Date().toLocaleDateString()}`, inputs); toast(s.ok ? { tone: "success", title: s.message ?? "Saved" } : { tone: "error", title: s.error }); }} aria-label="Save scenario"><Save className="size-4" /></Button>}
             </div>
           </form>
         </Card>
@@ -110,13 +120,13 @@ export function ScenarioLab({ initialType, initialInputs }: { initialType: Scena
             <Card className="p-5 space-y-3"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-40" /><Skeleton className="h-24" /></Card>
           ) : (
             <>
-              <Notice tone={verdictTone} icon={<Sparkles className="size-4" />} title={r.verdict.headline}>
+              <Notice tone={verdictTone} title={r.verdict.headline}>
                 <ul className="mt-1.5 space-y-0.5 list-disc pl-4">
                   {r.verdict.points.map((p) => <li key={p}>{p}</li>)}
                 </ul>
               </Notice>
               <Card className="overflow-hidden">
-                <CardHeader title="Impact" subtitle="Baseline vs. with this scenario" />
+                <CardHeader title="Impact" />
                 <div className="overflow-x-auto">
                   <table className="w-full text-[13px]">
                     <thead>
@@ -129,22 +139,19 @@ export function ScenarioLab({ initialType, initialInputs }: { initialType: Scena
                     </thead>
                     <tbody>
                       {[
-                        ["Cash in week 13", r.baseline.cashWeek13, r.scenario.cashWeek13, "money"],
-                        ["Lowest cash (13 weeks)", r.baseline.minCash, r.scenario.minCash, "money"],
-                        ["Annual expenses (TTM)", r.baseline.annualExpenses, r.scenario.annualExpenses, "money"],
-                        ["Annual profit (TTM)", r.baseline.annualProfit, r.scenario.annualProfit, "money"],
-                        ["Total debt", r.baseline.totalDebt, r.scenario.totalDebt, "money"],
-                        ["Debt-to-assets", r.baseline.debtToAssets, r.scenario.debtToAssets, "pct"],
-                        ["Debt service coverage", r.baseline.dscr ?? 0, r.scenario.dscr ?? 0, "x"],
-                      ].map(([label, a, b, kind]) => {
-                        const fmt = (v: number) => (kind === "money" ? moneyCompact(v) : kind === "pct" ? `${(v * 100).toFixed(0)}%` : `${v.toFixed(2)}×`);
+                        ["Cash in week 13", r.baseline.cashWeek13, r.scenario.cashWeek13],
+                        ["Annual expenses (TTM)", r.baseline.annualExpenses, r.scenario.annualExpenses],
+                        ["Annual profit (TTM)", r.baseline.annualProfit, r.scenario.annualProfit],
+                        ["Total debt", r.baseline.totalDebt, r.scenario.totalDebt],
+                      ].map(([label, a, b]) => {
+                        const fmt = (v: number) => moneyCompact(v);
                         const d = (b as number) - (a as number);
                         return (
                           <tr key={label as string} className="border-b border-line last:border-0">
                             <td className="px-5 py-2.5">{label as string}</td>
                             <td className="px-3 py-2.5 text-right tabular text-muted">{fmt(a as number)}</td>
                             <td className="px-3 py-2.5 text-right tabular font-semibold">{fmt(b as number)}</td>
-                            <td className={cn("px-5 py-2.5 text-right tabular", d < 0 && kind !== "pct" ? "text-risk-600" : d > 0 && kind === "pct" ? "text-risk-600" : "text-ink-2")}>{d === 0 ? "–" : kind === "money" ? money(d, { sign: true }) : kind === "pct" ? `${d > 0 ? "+" : ""}${(d * 100).toFixed(0)} pts` : `${d > 0 ? "+" : ""}${d.toFixed(2)}×`}</td>
+                            <td className={cn("px-5 py-2.5 text-right tabular", d < 0 ? "text-risk-600" : "text-ink-2")}>{d === 0 ? "–" : money(d, { sign: true })}</td>
                           </tr>
                         );
                       })}
@@ -153,11 +160,11 @@ export function ScenarioLab({ initialType, initialInputs }: { initialType: Scena
                 </div>
               </Card>
               <Card>
-                <CardHeader title="13-week cash position" subtitle={r.scenarioForecast.weeksBelowBuffer.length ? `Below buffer in weeks ${r.scenarioForecast.weeksBelowBuffer.join(", ")}` : "Stays above your buffer"} action={<Badge tone={verdictTone}>{r.verdict.level}</Badge>} />
+                <CardHeader title="13-week cash position" />
                 <div className="px-5 pb-5"><ScenarioChart data={r.chart} buffer={r.scenarioForecast.bufferCents} /></div>
               </Card>
               <Card>
-                <CardHeader title="Assumptions used" subtitle="Every scenario shows its working" />
+                <CardHeader title="Assumptions used" />
                 <ul className="px-5 pb-4">
                   {r.assumptions.map((a) => (
                     <li key={a.key} className="py-2 border-t border-line first:border-0 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 text-[13px]">

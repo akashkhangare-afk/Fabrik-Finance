@@ -194,7 +194,7 @@ function verdict(type: ScenarioType, base: ScenarioMetrics, sc: ScenarioMetrics,
   const points: string[] = [];
   points.push(`Lowest projected cash in the next 13 weeks: ${k(sc.minCash)} (week ${f.minWeek}), versus ${k(base.minCash)} today.`);
   if (sc.totalDebt !== base.totalDebt) points.push(`Debt-to-assets moves from ${(base.debtToAssets * 100).toFixed(0)}% to ${(sc.debtToAssets * 100).toFixed(0)}%.`);
-  if (sc.dscr != null && base.dscr != null && sc.dscr !== base.dscr) points.push(`Debt service coverage moves from ${base.dscr.toFixed(2)}× to ${sc.dscr.toFixed(2)}× (lenders commonly look for 1.25× or more).`);
+  if (sc.dscr != null && base.dscr != null && sc.dscr !== base.dscr) points.push(`Debt service coverage moves from ${base.dscr.toFixed(2)}× to ${sc.dscr.toFixed(2)}×.`);
   if (sc.annualProfit !== base.annualProfit) points.push(`Annual profit changes by ${k(sc.annualProfit - base.annualProfit)} on a trailing-12-month basis.`);
   const belowBuffer = f.weeksBelowBuffer.length;
   let level: ScenarioResult["verdict"]["level"] = "comfortable";
