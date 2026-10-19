@@ -42,7 +42,6 @@ export async function financePackage(orgId: ID, period: string) {
 
   const txns = data.transactions.filter((t) => t.date >= from && t.date <= to && t.status !== "excluded");
   const largest = [...txns].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 6);
-  const unusual = txns.filter((t) => t.ai?.anomaly || t.ai?.possibleDuplicateOf || (t.risk?.reasons.length ?? 0) > 0).slice(0, 6);
   const provider = accountingProvider(orgId);
   const reports = [
     await provider.profitAndLoss(orgId, [{ label: monthLabel(prev), from: `${prev}-01`, to: monthEnd(prev) }, { label: monthLabel(period), from, to }]),
@@ -60,7 +59,6 @@ export async function financePackage(orgId: ID, period: string) {
     trend,
     changes: changes.slice(0, 6),
     largest: largest.map((t) => ({ id: t.id, date: t.date, vendor: t.ai?.normalizedVendor ?? t.description, account: t.splits?.length ? "Split" : accountName(t.accountId ?? t.ai?.accountId), amount: t.amount })),
-    unusual: unusual.map((t) => ({ id: t.id, date: t.date, vendor: t.ai?.normalizedVendor ?? t.description, amount: t.amount, reason: t.ai?.anomaly?.reason ?? (t.ai?.possibleDuplicateOf ? "Possible duplicate" : t.risk!.reasons.map((r) => r.label).join(", ")) })),
     reports,
   };
 }

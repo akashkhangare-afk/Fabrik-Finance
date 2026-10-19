@@ -38,7 +38,7 @@ export function CloseActions({ period, status, bookkeeperDone, ready, blocking, 
           open
           onClose={() => setModal(undefined)}
           title={modal === "approve" ? "Approve and close the books?" : modal === "reopen" ? "Reopen this period?" : "Complete bookkeeper review?"}
-          description={modal === "approve" ? "This locks the period, generates the monthly finance package and notifies the client. The reviewer must be different from the bookkeeper who prepared the close." : modal === "reopen" ? "Reopening removes the reviewer approval. Explain why for the audit trail." : "Confirm you've reviewed every exception for this period."}
+          description={modal === "approve" ? "Locks the period and generates the finance package." : modal === "reopen" ? "Removes the reviewer approval." : "Confirm every exception for this period is reviewed."}
           footer={
             <>
               <Button onClick={() => setModal(undefined)}>Cancel</Button>

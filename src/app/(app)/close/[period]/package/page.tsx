@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Download, Sparkles } from "lucide-react";
 import { requireCtx, hasPerm } from "@/server/auth/session";
 import { financePackage } from "@/server/services/package";
-import { AiBadge, Badge, Card, CardHeader, KpiCard, Notice, PageHeader, StatusPill, buttonClass } from "@/components/ui/primitives";
+import { AiBadge, Card, CardHeader, EmptyState, KpiCard, PageHeader, StatusPill, buttonClass } from "@/components/ui/primitives";
 import { RevenueExpenseChart } from "@/components/charts";
 import { ReportTable } from "@/components/books/report";
 import { money, moneyCompact, signedPct } from "@/lib/format";
 import { prettyDate, prettyDateTime } from "@/lib/dates";
+import { periodLabel } from "@/server/services/close";
+import { showExtras } from "@/server/config";
 
 export const metadata = { title: "Finance package" };
 
@@ -16,19 +19,28 @@ export default async function PackagePage({ params }: { params: Promise<{ period
   if (!/^\d{4}-\d{2}$/.test(period)) notFound();
   const pkg = await financePackage(ctx.org.id, period);
   const draft = pkg.status !== "closed";
+  // G§15: the package is produced once the books are closed; staff can preview drafts while closing.
+  if (draft && !ctx.isStaff && !showExtras())
+    return (
+      <div className="max-w-[1100px]">
+        <PageHeader title={pkg.title} />
+        <Card>
+          <EmptyState title={`Ready once ${periodLabel(period)} books are closed`} action={<Link href="/close" className="text-[13px] text-brand-700 hover:underline">Monthly Close</Link>} />
+        </Card>
+      </div>
+    );
   return (
     <div className="max-w-[1100px] space-y-6">
       <PageHeader
         eyebrow={ctx.org.legalName}
         title={pkg.title}
         badge={<StatusPill status={pkg.status} label={draft ? "Draft — books not closed" : "Closed & reviewed"} />}
-        description={draft ? "This package updates as the close progresses. It's finalized when the reviewer approves the books." : `Generated ${prettyDateTime(pkg.generatedAt!)} UTC when the books were closed.`}
+        description={draft ? undefined : `Generated ${prettyDateTime(pkg.generatedAt!)}`}
         actions={hasPerm(ctx, "reports:export") ? <a className={buttonClass("primary")} href={`/api/v1/close/${period}/package`}><Download className="size-4" /> Download PDF</a> : undefined}
       />
-      {draft && <Notice tone="warn" title="Draft">Some transactions may still be under review, so figures can change before the close is approved.</Notice>}
 
       <Card>
-        <CardHeader title="Executive summary" subtitle="What changed this month, in plain English" action={<AiBadge label="AI-generated observations" />} />
+        <CardHeader title="Executive summary" action={<AiBadge label="AI-generated observations" />} />
         <ul className="px-5 pb-5 space-y-2.5">
           {pkg.observations.map((o) => (
             <li key={o} className="flex gap-3 text-[14.5px] leading-relaxed">
@@ -57,6 +69,14 @@ export default async function PackagePage({ params }: { params: Promise<{ period
         <Card>
           <CardHeader title="Major expense changes" subtitle="vs. prior month" />
           <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-[12px] text-muted border-t border-line">
+                <th className="px-5 py-2 text-left font-medium">Category</th>
+                <th className="px-3 py-2 text-right font-medium">Prior month</th>
+                <th className="px-3 py-2 text-right font-medium">This month</th>
+                <th className="px-5 py-2 text-right font-medium">Change</th>
+              </tr>
+            </thead>
             <tbody>
               {pkg.changes.map((c) => (
                 <tr key={c.sub} className="border-t border-line">
@@ -82,14 +102,6 @@ export default async function PackagePage({ params }: { params: Promise<{ period
               ))}
             </tbody>
           </table>
-          {pkg.unusual.length > 0 && (
-            <div className="px-5 py-3 border-t border-line">
-              <div className="text-[12px] font-semibold text-muted mb-1.5">Reviewed by a person</div>
-              <div className="flex flex-wrap gap-1.5">
-                {pkg.unusual.map((u) => <Badge key={u.id} tone="warn">{u.vendor} · {u.reason}</Badge>)}
-              </div>
-            </div>
-          )}
         </Card>
       </div>
 
