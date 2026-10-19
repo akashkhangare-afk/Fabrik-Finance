@@ -1,20 +1,20 @@
 import Link from "next/link";
-import { Bot, ClipboardCheck, Cpu, Lock, Search, ShieldAlert, ShieldCheck, Sparkles, UserRound, Users } from "lucide-react";
+import { Bot, ClipboardCheck, Lock, Search, ShieldAlert, ShieldCheck, Sparkles, UserRound, Users } from "lucide-react";
 import type { AuditEvent } from "@/lib/types";
 import { requireCtx, hasPerm, type Ctx } from "@/server/auth/session";
 import { fabrikTeam, teamMembers } from "@/server/services/admin";
 import { db } from "@/server/db/store";
-import { aiStatus } from "@/server/ai/gateway";
 import { ROLE_LABELS } from "@/server/auth/permissions";
-import { AiBadge, Avatar, Badge, Card, CardHeader, ClassBadge, DescList, EmptyState, Input, Notice, PageHeader, buttonClass } from "@/components/ui/primitives";
+import { AiBadge, Avatar, Badge, Card, CardHeader, DescList, EmptyState, Input, Notice, PageHeader, buttonClass } from "@/components/ui/primitives";
 import { InviteForm, TeamTable, type MemberView } from "@/components/settings/team";
 import { MfaCard, ProfileForm } from "@/components/settings/profile";
 import { FrequencyForm, RuleToggle, ThresholdsForm } from "@/components/settings/ai";
 import { prettyDate, prettyDateTime } from "@/lib/dates";
+import { showExtras } from "@/server/config";
 import { count, money } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
-export const metadata = { title: "Team & Settings" };
+export const metadata = { title: "Settings" };
 
 type Tab = "team" | "profile" | "ai" | "bookkeeping" | "audit";
 const TAB_LABELS: Record<Tab, string> = { team: "Team", profile: "Profile & security", ai: "AI & rules", bookkeeping: "Bookkeeping", audit: "Audit trail" };
@@ -25,7 +25,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const allowed: Tab[] = [
     ...(hasPerm(ctx, "team:read") ? (["team"] as const) : []),
     "profile",
-    ...(hasPerm(ctx, "team:read") ? (["ai", "bookkeeping"] as const) : []),
+    ...(hasPerm(ctx, "team:read") ? (["ai"] as const) : []),
+    ...(hasPerm(ctx, "team:read") && showExtras() ? (["bookkeeping"] as const) : []),
     ...(hasPerm(ctx, "audit:read") ? (["audit"] as const) : []),
   ];
   const requested = (sp.tab ?? "team") as Tab;
@@ -33,7 +34,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="max-w-[1100px]">
-      <PageHeader title="Team & Settings" description={`${ctx.org.name} · who has access, how Fabrik's AI behaves, and a full record of what happened.`} />
+      <PageHeader title="Settings" />
       <div className="flex items-center gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist" aria-label="Settings sections">
         {allowed.map((t) => (
           <Link
@@ -77,12 +78,11 @@ function TeamTab({ ctx }: { ctx: Ctx }) {
   const fabrik = [
     { label: "Bookkeeper", user: team.bookkeeper, note: "Day-to-day categorization, questions and close prep" },
     { label: "Reviewer", user: team.reviewer, note: "Approves reconciliations and the monthly close" },
-    { label: "Dedicated accountant", user: team.accountant, note: "One consistent point of contact for your books", proposed: true },
   ];
   return (
     <div className="space-y-6">
       {ctx.isStaff && !canManage && (
-        <Notice tone="info" icon={<Lock className="size-4" />}>You&apos;re viewing {ctx.org.name}&apos;s team as Fabrik staff — read-only. The Business Owner or a Fabrik admin manages access.</Notice>
+        <Notice tone="info" icon={<Lock className="size-4" />}>Read-only for Fabrik staff.</Notice>
       )}
       <Card>
         <CardHeader title="Members" subtitle={`${count(members.length)} people with access to ${ctx.org.name}`} icon={<Users className="size-4" />} />
@@ -90,15 +90,14 @@ function TeamTab({ ctx }: { ctx: Ctx }) {
       </Card>
       {canManage && (
         <Card>
-          <CardHeader title="Invite someone" subtitle="They'll get an email to set a password. Invitations expire in 7 days." />
+          <CardHeader title="Invite someone" />
           <div className="px-5 pb-5">
             <InviteForm />
-            <p className="text-[12px] text-muted mt-3">Business Owners manage the team, settings and integrations. Client Finance Users review and approve. External Accountants get read access to books, reports and tax items.</p>
           </div>
         </Card>
       )}
       <Card>
-        <CardHeader title="Your Fabrik team" subtitle="The people who keep your books" icon={<UserRound className="size-4" />} />
+        <CardHeader title="Your Fabrik team" icon={<UserRound className="size-4" />} />
         <ul className="border-t border-line">
           {fabrik.map((f) => (
             <li key={f.label} className="px-5 py-3 border-t border-line first:border-t-0 flex items-center gap-3">
@@ -107,7 +106,6 @@ function TeamTab({ ctx }: { ctx: Ctx }) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[13.5px] font-semibold">{f.user?.name ?? "Not assigned yet"}</span>
                   <span className="text-[12px] text-muted" title={f.note}>{f.label}</span>
-                  {f.proposed && <ClassBadge cls="B" />}
                 </div>
                 <div className="text-[12px] text-muted truncate">{f.user ? `${f.user.title ?? ""}${f.user.title ? " · " : ""}${f.user.email}` : f.note}</div>
               </div>
@@ -128,7 +126,7 @@ function ProfileTab({ ctx }: { ctx: Ctx }) {
       <Card>
         <CardHeader title="Your profile" subtitle={u.email} icon={<UserRound className="size-4" />} />
         <div className="px-5 pb-5">
-          <ProfileForm name={u.name} title={u.title ?? ""} prefs={u.notificationPrefs} />
+          <ProfileForm name={u.name} title={u.title ?? ""} prefs={u.notificationPrefs} showDigest={showExtras()} />
         </div>
       </Card>
       <div className="space-y-6">
@@ -148,8 +146,6 @@ function ProfileTab({ ctx }: { ctx: Ctx }) {
               items={[
                 ["Organization", ctx.org.name],
                 ["Active role", <Badge key="r" tone={ctx.isStaff ? "ai" : "brand"}>{ROLE_LABELS[ctx.role]}</Badge>],
-                ["Last sign-in", u.lastLoginAt ? `${prettyDateTime(u.lastLoginAt)} UTC` : "—"],
-                ["Session expires", `${prettyDateTime(ctx.session.expiresAt)} UTC`],
               ]}
             />
           </div>
@@ -166,41 +162,20 @@ function AiTab({ ctx }: { ctx: Ctx }) {
   const canEdit = hasPerm(ctx, "settings:manage");
   const canRules = hasPerm(ctx, "rules:manage");
   const t = ctx.org.thresholds;
-  const ai = aiStatus();
   const rules = data.rules.filter((r) => r.orgId === ctx.org.id).sort((a, b) => b.hits - a.hits);
-  const pctS = (v: number) => `${Math.round(v * 1000) / 10}%`;
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader title="AI confidence thresholds" subtitle={canEdit ? "Changes apply immediately and are recorded in the audit trail." : "Managed by a Business Owner or Fabrik admin."} icon={<Sparkles className="size-4" />} />
+        <CardHeader title="AI confidence thresholds" icon={<Sparkles className="size-4" />} />
         <div className="px-5 pb-5 space-y-5">
           <ThresholdsForm autoApprove={t.autoApprove} review={t.review} largeDollars={Math.round(ctx.org.largeTransactionThreshold / 100)} canEdit={canEdit} />
-          <div className="grid gap-2 sm:grid-cols-3 text-[13px]">
-            <div className="rounded-xl border border-line bg-ok-50/50 px-3.5 py-3">
-              <div className="font-semibold text-ok-600 tabular">≥ {pctS(t.autoApprove)}</div>
-              <div className="text-ink-2 mt-0.5">Eligible for automatic processing</div>
-            </div>
-            <div className="rounded-xl border border-line bg-warn-50/50 px-3.5 py-3">
-              <div className="font-semibold text-warn-700 tabular">{pctS(t.review)} – {pctS(t.autoApprove)}</div>
-              <div className="text-ink-2 mt-0.5">Bookkeeper review</div>
-            </div>
-            <div className="rounded-xl border border-line bg-risk-50/50 px-3.5 py-3">
-              <div className="font-semibold text-risk-600 tabular">&lt; {pctS(t.review)}</div>
-              <div className="text-ink-2 mt-0.5">Review or client clarification</div>
-            </div>
-          </div>
-          <Notice tone="neutral" icon={<ShieldAlert className="size-4" />} title="Risk rules override confidence">
-            A transaction that trips any risk rule — or is {money(ctx.org.largeTransactionThreshold)} or more — always goes to a person, however confident the AI is.
-          </Notice>
-          <div className="flex items-center gap-2 text-[12.5px] text-muted">
-            <Cpu className="size-3.5" aria-hidden /> AI provider: <span className="text-ink-2 font-medium">{ai.provider}</span> · <span className="font-mono text-[11.5px]">{ai.model}</span>
-          </div>
+          <Notice tone="neutral" icon={<ShieldAlert className="size-4" />}>Risk rules override confidence: flagged items and anything {money(ctx.org.largeTransactionThreshold)} or more always go to a person.</Notice>
         </div>
       </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Risk rules" subtitle="Always require human review. Managed by Fabrik admins." icon={<ShieldAlert className="size-4" />} />
+          <CardHeader title="Risk rules" icon={<ShieldAlert className="size-4" />} />
           <ul className="border-t border-line">
             {data.riskRules.map((r) => (
               <li key={r.key} className="px-5 py-2.5 border-t border-line first:border-t-0 flex items-start justify-between gap-3">
@@ -214,21 +189,16 @@ function AiTab({ ctx }: { ctx: Ctx }) {
           </ul>
         </Card>
         <Card>
-          <CardHeader title="Learned rules" subtitle={canRules ? "Created from corrections. Turn a rule off to stop it applying." : "Created from corrections. Your Fabrik team manages these."} icon={<Bot className="size-4" />} />
+          <CardHeader title="Learned rules" icon={<Bot className="size-4" />} />
           {rules.length === 0 ? (
-            <EmptyState title="No learned rules yet" description="When a categorization is corrected, Fabrik offers to remember it here." />
+            <EmptyState title="No learned rules yet" />
           ) : (
             <ul className="border-t border-line">
               {rules.map((r) => (
                 <li key={r.id} className={cn("px-5 py-2.5 border-t border-line first:border-t-0 flex items-center justify-between gap-3", !r.active && "opacity-60")}>
                   <div className="min-w-0">
                     <div className="text-[13.5px] font-medium truncate">{r.label}</div>
-                    <div className="text-[12px] text-muted flex flex-wrap gap-x-2">
-                      <span className="capitalize">{r.kind}</span>
-                      <span>· {count(r.hits)} {r.hits === 1 ? "hit" : "hits"}</span>
-                      <span>· from {r.createdFrom}</span>
-                      <span>· {prettyDate(r.createdAt.slice(0, 10), { year: true })}</span>
-                    </div>
+                    <div className="text-[12px] text-muted"><span className="capitalize">{r.kind}</span> · {prettyDate(r.createdAt.slice(0, 10), { year: true })}</div>
                   </div>
                   {canRules ? <RuleToggle id={r.id} active={r.active} label={r.label} /> : r.active ? <Badge tone="ok" dot>Active</Badge> : <Badge tone="neutral" dot>Off</Badge>}
                 </li>
@@ -253,14 +223,13 @@ function BookkeepingTab({ ctx }: { ctx: Ctx }) {
         <CardHeader
           title={
             <span className="inline-flex items-center gap-2 flex-wrap">
-              Close frequency <ClassBadge cls="B" />
+              Close frequency
             </span>
           }
           subtitle="How often Fabrik closes your books and delivers a finance package."
         />
         <div className="px-5 pb-5 space-y-3">
           {canEdit ? <FrequencyForm value={ctx.org.closeFrequency} /> : <Badge tone="brand">{FREQ[ctx.org.closeFrequency]}</Badge>}
-          <p className="text-[12px] text-muted">Monthly close is the PRD default. Quarterly and annual schedules are a proposed, Fondo-inspired option for smaller operations.</p>
         </div>
       </Card>
       <Card>
@@ -322,7 +291,6 @@ function AuditTab({ ctx, q, page: p0 }: { ctx: Ctx; q: string; page: number }) {
     <Card>
       <CardHeader
         title="Audit trail"
-        subtitle="Every change by people, Fabrik AI and the system — who, what, when, and why (PRD §20, §25)."
         icon={<ClipboardCheck className="size-4" />}
         action={<span className="text-[12px] text-muted tabular">{recent.length ? `${count((page - 1) * AUDIT_PAGE + 1)}–${count((page - 1) * AUDIT_PAGE + events.length)} of ` : ""}{count(recent.length)} {matched.length > recent.length ? `latest (${count(matched.length)} total)` : "events"}</span>}
       />
@@ -341,14 +309,14 @@ function AuditTab({ ctx, q, page: p0 }: { ctx: Ctx; q: string; page: number }) {
       </form>
       {events.length === 0 ? (
         <div className="border-t border-line">
-          <EmptyState title={q ? "No matching events" : "No events yet"} description={q ? "Try a different word — e.g. “approved”, “sync” or a person’s name." : undefined} />
+          <EmptyState title={q ? "No matching events" : "No events yet"} />
         </div>
       ) : (
         <div className="relative overflow-x-auto border-t border-line">
           <table className="w-full text-[13px] min-w-[900px]">
             <thead>
               <tr className="text-left text-[12px] text-muted">
-                <th className="px-5 py-2.5 font-medium whitespace-nowrap">Time (UTC)</th>
+                <th className="px-5 py-2.5 font-medium whitespace-nowrap">Time</th>
                 <th className="px-3 py-2.5 font-medium">Actor</th>
                 <th className="px-3 py-2.5 font-medium">Action</th>
                 <th className="px-3 py-2.5 font-medium">Record</th>
@@ -398,8 +366,7 @@ function AuditTab({ ctx, q, page: p0 }: { ctx: Ctx; q: string; page: number }) {
                           </span>
                         )}
                         {e.risk && e.risk.reasons.length > 0 && <Badge tone="risk" title={e.risk.reasons.join(", ")}>Risk · {e.risk.level}</Badge>}
-                        {e.humanSeconds != null && <span className="tabular">{e.humanSeconds}s human time</span>}
-                        {!e.ai && !e.risk && e.humanSeconds == null && <span className="text-subtle">—</span>}
+                        {!e.ai && !e.risk && <span className="text-subtle">—</span>}
                       </div>
                     </td>
                   </tr>

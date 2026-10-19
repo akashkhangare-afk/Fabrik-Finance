@@ -8,10 +8,10 @@ import { Avatar, Badge, Button, Field, Input, Select } from "@/components/ui/pri
 import { ConfirmDialog } from "@/components/ui/client";
 import { useAct } from "./use-act";
 
-export const CLIENT_ROLE_OPTIONS: { value: ClientRole; label: string }[] = [
+/** The two customer roles in PRD §3. The External Accountant role still exists for existing members but isn't offered. */
+const CLIENT_ROLE_OPTIONS: { value: ClientRole; label: string }[] = [
   { value: "business_owner", label: "Business Owner" },
   { value: "client_finance_user", label: "Client Finance User" },
-  { value: "external_accountant", label: "External Accountant / CPA" },
 ];
 
 export interface MemberView {
@@ -60,7 +60,7 @@ export function TeamTable({ members, canManage }: { members: MemberView[]; canMa
                   </div>
                 </td>
                 <td className="px-3 py-3">
-                  {canManage && !m.isSelf ? (
+                  {canManage && !m.isSelf && CLIENT_ROLE_OPTIONS.some((o) => o.value === m.role) ? (
                     <Select aria-label={`Role for ${m.name}`} className="h-8 text-[13px] w-[220px]" value={m.role} disabled={pending} onChange={(e) => act(() => changeRole(m.membershipId, e.target.value as ClientRole))}>
                       {CLIENT_ROLE_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>

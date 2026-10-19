@@ -30,19 +30,19 @@ export function ThresholdsForm({ autoApprove, review, largeDollars, canEdit }: {
       }}
     >
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Automatic processing at or above" htmlFor="th-auto" hint="PRD default 98%">
+        <Field label="Automatic processing at or above" htmlFor="th-auto">
           <div className="relative">
             <Input id="th-auto" inputMode="decimal" disabled={!canEdit} value={a} onChange={(e) => setA(e.target.value)} className="pr-8 tabular" />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden>%</span>
           </div>
         </Field>
-        <Field label="Bookkeeper review at or above" htmlFor="th-review" hint="PRD default 85%">
+        <Field label="Bookkeeper review at or above" htmlFor="th-review">
           <div className="relative">
             <Input id="th-review" inputMode="decimal" disabled={!canEdit} value={r} onChange={(e) => setR(e.target.value)} className="pr-8 tabular" />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden>%</span>
           </div>
         </Field>
-        <Field label="Large transaction (always reviewed)" htmlFor="th-large" hint="At or above this amount">
+        <Field label="Large transaction (always reviewed)" htmlFor="th-large">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden>$</span>
             <Input id="th-large" inputMode="numeric" disabled={!canEdit} value={l} onChange={(e) => setL(e.target.value)} className="pl-6 tabular" />

@@ -3,14 +3,14 @@
 import { useState, useTransition } from "react";
 import { ShieldCheck, ShieldOff } from "lucide-react";
 import { beginMfaEnrollment, confirmMfaEnrollment, disableMfa, updateMyProfile } from "@/app/actions/auth";
-import { Badge, Button, Field, Input, Notice } from "@/components/ui/primitives";
+import { Badge, Button, Field, Input } from "@/components/ui/primitives";
 import { Segmented, useToast } from "@/components/ui/client";
 import { Switch } from "./switch";
 import { useAct } from "./use-act";
 
 type Digest = "realtime" | "daily" | "weekly";
 
-export function ProfileForm({ name: n0, title: t0, prefs: p0 }: { name: string; title: string; prefs: { email: boolean; inApp: boolean; digest: Digest } }) {
+export function ProfileForm({ name: n0, title: t0, prefs: p0, showDigest }: { name: string; title: string; prefs: { email: boolean; inApp: boolean; digest: Digest }; showDigest: boolean }) {
   const { pending, act } = useAct();
   const [name, setName] = useState(n0);
   const [title, setTitle] = useState(t0);
@@ -36,24 +36,15 @@ export function ProfileForm({ name: n0, title: t0, prefs: p0 }: { name: string; 
         <div className="text-[13px] font-medium text-ink-2 mb-2">Notifications</div>
         <div className="rounded-xl border border-line divide-y divide-line">
           <div className="flex items-center justify-between gap-4 px-4 py-3">
-            <div>
-              <label htmlFor="pf-email" className="text-[13.5px] font-medium">Email notifications</label>
-              <div className="text-[12px] text-muted">Questions, approvals and books-ready alerts by email.</div>
-            </div>
+            <label htmlFor="pf-email" className="text-[13.5px] font-medium">Email notifications</label>
             <Switch id="pf-email" label="Email notifications" checked={prefs.email} onChange={(v) => setPrefs((p) => ({ ...p, email: v }))} />
           </div>
           <div className="flex items-center justify-between gap-4 px-4 py-3">
-            <div>
-              <label htmlFor="pf-inapp" className="text-[13.5px] font-medium">In-app notifications</label>
-              <div className="text-[12px] text-muted">The bell in the top bar.</div>
-            </div>
+            <label htmlFor="pf-inapp" className="text-[13.5px] font-medium">In-app notifications</label>
             <Switch id="pf-inapp" label="In-app notifications" checked={prefs.inApp} onChange={(v) => setPrefs((p) => ({ ...p, inApp: v }))} />
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 px-4 py-3">
-            <div>
-              <div className="text-[13.5px] font-medium">Email digest</div>
-              <div className="text-[12px] text-muted">How often non-urgent updates are bundled.</div>
-            </div>
+          {showDigest && <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 px-4 py-3">
+            <div className="text-[13.5px] font-medium">Email digest</div>
             <Segmented<Digest>
               size="sm"
               label="Email digest frequency"
@@ -65,7 +56,7 @@ export function ProfileForm({ name: n0, title: t0, prefs: p0 }: { name: string; 
                 { value: "weekly", label: "Weekly" },
               ]}
             />
-          </div>
+          </div>}
         </div>
       </div>
       <div className="flex justify-end">
@@ -119,9 +110,7 @@ export function MfaCard({ enabled }: { enabled: boolean }) {
       <Badge tone="warn"><ShieldOff className="size-3" aria-hidden /> Two-factor authentication is off</Badge>
       {!setup ? (
         <>
-          <p className="text-[13px] text-muted">Protect financial data with a time-based code from an authenticator app (1Password, Google Authenticator, Authy…).</p>
           <Button
-            variant="primary"
             disabled={starting}
             onClick={() =>
               start(async () => {
@@ -159,7 +148,6 @@ export function MfaCard({ enabled }: { enabled: boolean }) {
               </form>
             </div>
           </div>
-          <Notice tone="neutral" className="mt-3">Two-factor is only switched on after the code is verified.</Notice>
         </div>
       )}
     </div>
