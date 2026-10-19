@@ -73,9 +73,10 @@ function InboxCard({ item, canUpload, canApproveBills, demo }: { item: InboxView
   const Icon = meta.icon;
   const done = item.status !== "open";
   return (
-    <Card className={cn("animate-in", done && "opacity-90")}>
+    <Card className={cn("animate-in relative overflow-hidden transition-shadow duration-200 hover:shadow-[var(--shadow-raised)]", done && "opacity-90")}>
+      {item.priority === "high" && !done && <span className="absolute inset-y-0 left-0 w-1 bg-risk-600" aria-hidden />}
       <div className="px-5 pt-4 pb-1 flex items-start gap-3">
-        <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0", item.fromAi ? "bg-ai-50 text-ai-600" : "bg-brand-50 text-brand-700")}>
+        <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-inset", item.fromAi ? "bg-ai-50 text-ai-600 ring-ai-100" : "bg-brand-50 text-brand-700 ring-brand-100")}>
           <Icon className="size-4.5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -143,11 +144,16 @@ function ClarifyForm({ item }: { item: InboxView }) {
       {hasConf && <div className="text-[12px] font-medium text-ai-600 mb-2 flex items-center gap-1"><Sparkles className="size-3.5" /> Fabrik thinks</div>}
       <div className="grid gap-2 sm:grid-cols-2">
         {opts.map((o) => (
-          <button key={o.value} disabled={pending} onClick={() => act(() => respondInbox(item.id, { value: o.value, label: o.label, comment: comment || undefined }))} className="group text-left rounded-xl border border-line bg-surface px-3.5 py-2.5 hover:border-brand-300 hover:bg-brand-50/40 transition disabled:opacity-60">
+          <button key={o.value} disabled={pending} onClick={() => act(() => respondInbox(item.id, { value: o.value, label: o.label, comment: comment || undefined }))} className="group text-left rounded-xl border border-line bg-surface px-3.5 py-2.5 shadow-[var(--shadow-xs)] hover:border-brand-300 hover:bg-brand-50/40 hover:shadow-[var(--shadow-raised)] active:scale-[.99] transition-[border-color,background-color,box-shadow,transform] duration-150 disabled:opacity-60">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13.5px] font-medium">{o.label}</span>
-              {o.confidence != null && <span className="text-[12px] text-muted tabular">{Math.round(o.confidence * 100)}%</span>}
+              {o.confidence != null && <span className="text-[12px] text-muted tabular group-hover:text-brand-700">{Math.round(o.confidence * 100)}%</span>}
             </div>
+            {o.confidence != null && (
+              <div className="mt-2 h-1 rounded-full bg-sunken overflow-hidden" aria-hidden>
+                <div className="h-full rounded-full bg-ai-500/70" style={{ width: `${Math.round(o.confidence * 100)}%` }} />
+              </div>
+            )}
           </button>
         ))}
         <button onClick={() => setOther((x) => !x)} className={cn("text-left rounded-xl border border-dashed px-3.5 py-2.5 text-[13.5px] font-medium transition", other ? "border-brand-500 bg-brand-50/40" : "border-line-strong text-ink-2 hover:border-brand-300")}>Something else / add a comment</button>

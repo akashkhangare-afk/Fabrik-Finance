@@ -180,15 +180,19 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
         {turns.length === 0 && (
-          <div className={cn(compact ? "px-5 py-6" : "py-10")}>
-            <div className="size-10 rounded-xl bg-ai-50 text-ai-600 flex items-center justify-center">
-              <Sparkles className="size-5" />
+          <div className={cn(compact ? "px-5 py-6" : "py-12 sm:py-16 max-w-3xl mx-auto text-center")}>
+            <div className={cn("relative inline-flex", !compact && "mx-auto")}>
+              <div className="absolute inset-0 -m-3 rounded-3xl bg-ai-100/60 blur-xl" aria-hidden />
+              <div className="relative size-12 rounded-2xl bg-gradient-to-b from-ai-500 to-ai-700 text-white shadow-[var(--shadow-raised),var(--shadow-inset)] flex items-center justify-center">
+                <Sparkles className="size-5" />
+              </div>
             </div>
-            <h3 className="mt-3 text-[17px] font-semibold">Ask anything about {orgName ?? "your finances"}</h3>
-            <div className={cn("mt-5 grid gap-2", compact ? "" : "sm:grid-cols-2")}>
+            <h3 className={cn("mt-4 font-semibold tracking-[-0.01em]", compact ? "text-[17px]" : "text-[22px]")}>Ask anything about {orgName ?? "your finances"}</h3>
+            <div className={cn("mt-6 grid gap-2 text-left", compact ? "" : "sm:grid-cols-2")}>
               {STARTERS.slice(0, compact ? 5 : 8).map((s) => (
-                <button key={s} onClick={() => send(s)} className="text-left text-[13px] rounded-xl border border-line bg-surface px-3.5 py-2.5 hover:border-ai-100 hover:bg-ai-50/40 transition">
-                  {s}
+                <button key={s} onClick={() => send(s)} className="group flex items-center gap-3 text-left text-[13px] rounded-xl border border-line bg-surface px-3.5 py-3 shadow-[var(--shadow-xs)] hover:border-ai-100 hover:bg-ai-50/40 hover:shadow-[var(--shadow-raised)] hover:-translate-y-px active:translate-y-0 transition-[border-color,background-color,box-shadow,transform] duration-200">
+                  <span className="flex-1">{s}</span>
+                  <ArrowUp className="size-3.5 rotate-45 text-subtle shrink-0 transition-colors group-hover:text-ai-600" aria-hidden />
                 </button>
               ))}
             </div>
@@ -198,11 +202,11 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
           {turns.map((t, i) =>
             t.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand-700 text-white px-4 py-2.5 text-[14px]">{t.text}</div>
+                <div className="animate-in max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-b from-brand-600 to-brand-700 text-white px-4 py-2.5 text-[14px] shadow-[var(--shadow-xs),var(--shadow-inset)]">{t.text}</div>
               </div>
             ) : (
-              <div key={i} className="flex gap-3">
-                <div className="size-7 rounded-lg bg-ai-50 text-ai-600 flex items-center justify-center shrink-0 mt-0.5">
+              <div key={i} className="animate-in flex gap-3">
+                <div className="size-7 rounded-lg bg-ai-50 text-ai-600 ring-1 ring-inset ring-ai-100 flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles className="size-4" />
                 </div>
                 <div className={cn("min-w-0 flex-1 rounded-2xl rounded-tl-md border px-4 py-3", t.error ? "border-crit-50 bg-crit-50 text-crit-600 text-[13.5px]" : "border-line bg-surface-2")}>
@@ -216,7 +220,14 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
               <div className="size-7 rounded-lg bg-ai-50 text-ai-600 flex items-center justify-center shrink-0">
                 <Sparkles className="size-4 animate-pulse" />
               </div>
-              <div className="rounded-2xl border border-line bg-surface-2 px-4 py-3 text-[13px] text-muted">Checking your books, forecasts and programs…</div>
+              <div className="rounded-2xl border border-line bg-surface-2 px-4 py-3 text-[13px] text-muted inline-flex items-center gap-2.5">
+                <span className="flex gap-1" aria-hidden>
+                  <span className="size-1.5 rounded-full bg-ai-500 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="size-1.5 rounded-full bg-ai-500 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="size-1.5 rounded-full bg-ai-500 animate-bounce" />
+                </span>
+                Checking your books, forecasts and programs…
+              </div>
             </div>
           )}
           <div ref={endRef} />
@@ -229,7 +240,7 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
         }}
         className={cn("shrink-0 border-t border-line bg-surface", compact ? "p-3" : "pt-4")}
       >
-        <div className="flex items-end gap-2 rounded-xl border border-line-strong bg-surface px-3 py-2 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100">
+        <div className="flex items-end gap-2 rounded-2xl border border-line-strong bg-surface pl-4 pr-2 py-2 shadow-[var(--shadow-xs)] transition-[border-color,box-shadow] duration-150 focus-within:border-brand-500 focus-within:shadow-[var(--shadow-focus)]">
           <textarea
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -245,7 +256,7 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
             className="flex-1 resize-none bg-transparent outline-none text-[14px] py-1 max-h-32"
             aria-label="Ask Fabrik"
           />
-          <button type="submit" disabled={!q.trim() || pending} className="size-8 rounded-lg bg-brand-600 text-white flex items-center justify-center disabled:bg-line-strong" aria-label="Send">
+          <button type="submit" disabled={!q.trim() || pending} className="size-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-[var(--shadow-inset)] hover:bg-brand-700 active:scale-95 transition-[background-color,transform] duration-150 disabled:bg-line-strong disabled:shadow-none" aria-label="Send">
             <ArrowUp className="size-4" />
           </button>
         </div>
@@ -265,14 +276,14 @@ export function AskLauncher() {
   }, [open]);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="no-print fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 h-11 px-3.5 sm:pl-3.5 sm:pr-4 rounded-full bg-ink text-white shadow-[var(--shadow-pop)] hover:bg-brand-800 transition" aria-label="Ask Fabrik">
-        <Sparkles className="size-4.5 text-brand-300" />
+      <button onClick={() => setOpen(true)} className="no-print group fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 h-11 px-3.5 sm:pl-3.5 sm:pr-4 rounded-full bg-gradient-to-b from-[#24302a] to-ink text-white ring-1 ring-white/10 shadow-[var(--shadow-pop),var(--shadow-inset)] hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-12px_rgba(22,26,23,.4)] active:translate-y-0 transition-[transform,box-shadow] duration-200" aria-label="Ask Fabrik">
+        <Sparkles className="size-4.5 text-brand-300 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
         <span className="text-[13.5px] font-medium hidden sm:inline">Ask Fabrik</span>
       </button>
       {open && (
         <div className="fixed inset-0 z-[75]">
-          <div className="absolute inset-0 bg-ink/20" onClick={() => setOpen(false)} />
-          <div role="dialog" aria-modal="true" aria-label="Ask Fabrik" className="animate-drawer absolute right-0 top-0 h-full w-full max-w-[520px] bg-surface shadow-[var(--shadow-pop)] flex flex-col">
+          <div className="animate-backdrop absolute inset-0 bg-ink/25 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+          <div role="dialog" aria-modal="true" aria-label="Ask Fabrik" className="animate-drawer absolute right-0 top-0 h-full w-full max-w-[520px] bg-surface shadow-[var(--shadow-pop)] flex flex-col sm:rounded-l-2xl sm:border-l sm:border-line overflow-hidden">
             <div className="flex items-center justify-between px-5 h-14 border-b border-line shrink-0">
               <div className="flex items-center gap-2 font-semibold">
                 <Sparkles className="size-4.5 text-ai-600" /> Ask Fabrik
