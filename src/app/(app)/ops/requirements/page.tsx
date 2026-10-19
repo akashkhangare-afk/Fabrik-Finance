@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { requireCtx } from "@/server/auth/session";
+import { showExtras } from "@/server/config";
 import { REQUIREMENTS, CONFLICTS, type Requirement } from "@/content/requirements";
 import { Badge, Card, CardHeader, ClassBadge, EmptyState, PageHeader, type Tone } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
@@ -9,6 +11,7 @@ export const metadata = { title: "Requirements matrix" };
 const STATUS_TONE: Record<Requirement["status"], Tone> = { Implemented: "ok", "Implemented (synthetic integration)": "brand", Partial: "warn", "Designed, not built": "info", "Not in scope": "neutral" };
 
 export default async function RequirementsPage({ searchParams }: { searchParams: Promise<{ cls?: string; status?: string; area?: string; q?: string }> }) {
+  if (!showExtras()) notFound();
   const ctx = await requireCtx();
   if (!ctx.isStaff) return <EmptyState title="Fabrik staff only" description="The requirements matrix is an internal planning view." />;
   const sp = await searchParams;
