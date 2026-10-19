@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["exceljs", "pdf-lib", "unpdf", "qrcode"],
   experimental: {
     serverActions: { bodySizeLimit: "16mb" },
+    // Pages prefetched on hover (see IntentLink in the shell) are reused for 30 s, not 5 min,
+    // so a page opened later never shows data older than that.
+    staleTimes: { static: 30 },
   },
   async headers() {
     return [

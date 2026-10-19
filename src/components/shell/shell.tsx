@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ComponentProps, type ReactNode } from "react";
 import {
   Bell, BookOpen, Building2, CalendarCheck, Calculator, ChartLine, Check, ChevronsUpDown, ClipboardCheck, FileText, Gauge, HandCoins, House, Inbox, Landmark, ListChecks, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plug, Receipt, RefreshCw, Scale, ScrollText, Search, Settings, ShieldCheck, Sparkles, SquareKanban, Users, X,
 } from "lucide-react";
@@ -46,6 +46,16 @@ interface Props {
   search: boolean;
 }
 
+/**
+ * Prefetches the full page (data and code) once the pointer or focus shows intent, so the click
+ * renders without waiting for the server. Before that, Link prefetches only the loading state.
+ */
+function IntentLink(props: ComponentProps<typeof Link>) {
+  const [intent, setIntent] = useState(false);
+  const show = () => setIntent(true);
+  return <Link {...props} prefetch={intent ? true : null} onMouseEnter={show} onFocus={show} onTouchStart={show} />;
+}
+
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   if (href === "/ops") return pathname === "/ops";
@@ -86,7 +96,7 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
               const active = isActive(pathname, it.href);
               return (
                 <li key={it.href}>
-                  <Link
+                  <IntentLink
                     href={it.href}
                     title={compact ? it.label : undefined}
                     aria-current={active ? "page" : undefined}
@@ -102,7 +112,7 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
                         <span className="min-w-5 h-5 px-1.5 rounded-full bg-risk-600 text-white text-[11px] font-semibold flex items-center justify-center tabular">{it.badge}</span>
                       )
                     ) : null}
-                  </Link>
+                  </IntentLink>
                 </li>
               );
             })}
