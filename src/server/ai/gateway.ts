@@ -79,7 +79,3 @@ export async function phrase(answer: AskAnswer): Promise<{ text: string; model: 
   return { text, model: p.model };
 }
 
-export function aiStatus(): { provider: string; model: string } {
-  const p = provider();
-  return p ? { provider: "Anthropic", model: p.model } : { provider: "Fabrik deterministic engine", model: "fabrik-finance-router 2026.10" };
-}

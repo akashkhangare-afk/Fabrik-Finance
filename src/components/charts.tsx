@@ -223,16 +223,3 @@ export function AgingBuckets({ buckets }: { buckets: { label: string; value: num
     </div>
   );
 }
-
-export function Sparkline({ values, color = SERIES.s3, height = 36 }: { values: number[]; color?: string; height?: number }) {
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const w = 120;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${height - 3 - ((v - min) / (max - min || 1)) * (height - 6)}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} aria-hidden preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
