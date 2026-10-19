@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { money, moneyCompact } from "@/lib/format";
 
@@ -10,21 +10,26 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "subtle" | "ai";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,.12)] disabled:bg-brand-300",
-  secondary: "bg-surface text-ink border border-line-strong hover:bg-surface-2 hover:border-subtle/50 disabled:text-subtle",
-  ghost: "text-ink-2 hover:bg-sunken disabled:text-subtle",
-  subtle: "bg-sunken text-ink-2 hover:bg-line disabled:text-subtle",
-  danger: "bg-crit-600 text-white hover:bg-[#9b1f1f] disabled:opacity-50",
-  ai: "bg-ai-600 text-white hover:bg-ai-700 disabled:opacity-50",
+  primary: "bg-brand-600 text-white bg-gradient-to-b from-white/[.08] to-transparent shadow-[var(--shadow-inset),0_1px_2px_rgba(17,67,46,.25)] hover:bg-brand-700 disabled:bg-brand-300 disabled:shadow-none",
+  secondary: "bg-surface text-ink border border-line-strong shadow-[var(--shadow-xs)] hover:bg-surface-2 hover:border-subtle/60 disabled:text-subtle disabled:shadow-none",
+  ghost: "text-ink-2 hover:bg-sunken hover:text-ink disabled:text-subtle",
+  subtle: "bg-sunken text-ink-2 hover:bg-line hover:text-ink disabled:text-subtle",
+  danger: "bg-crit-600 text-white shadow-[var(--shadow-inset),0_1px_2px_rgba(120,20,20,.25)] hover:bg-[#9b1f1f] disabled:opacity-50",
+  ai: "bg-ai-600 text-white bg-gradient-to-b from-white/[.1] to-transparent shadow-[var(--shadow-inset),0_1px_2px_rgba(70,51,158,.3)] hover:bg-ai-700 disabled:opacity-50",
 };
 const SIZES: Record<Size, string> = {
   sm: "h-8 px-3 text-[13px] gap-1.5 rounded-lg",
-  md: "h-9 px-3.5 text-sm gap-2 rounded-lg",
+  md: "h-9 px-3.5 text-sm gap-2 rounded-[var(--radius-control)]",
   lg: "h-11 px-5 text-[15px] gap-2 rounded-xl",
 };
 
 export function buttonClass(variant: Variant = "secondary", size: Size = "md", extra?: string) {
-  return cn("inline-flex items-center justify-center font-medium whitespace-nowrap transition-colors select-none disabled:cursor-not-allowed", VARIANTS[variant], SIZES[size], extra);
+  return cn(
+    "inline-flex items-center justify-center font-medium whitespace-nowrap select-none transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out active:translate-y-px active:scale-[.985] disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:active:scale-100 [&_svg]:shrink-0",
+    VARIANTS[variant],
+    SIZES[size],
+    extra,
+  );
 }
 
 export function Button({ variant = "secondary", size = "md", className, ...props }: ComponentProps<"button"> & { variant?: Variant; size?: Size }) {
@@ -48,10 +53,10 @@ export function Card({ className, children, ...props }: ComponentProps<"section"
 export function CardHeader({ title, subtitle, action, icon, className }: { title: ReactNode; subtitle?: ReactNode; action?: ReactNode; icon?: ReactNode; className?: string }) {
   return (
     <div className={cn("flex items-start justify-between gap-4 px-5 pt-4 pb-3", className)}>
-      <div className="min-w-0 flex items-start gap-2.5">
-        {icon && <div className="mt-0.5 text-muted">{icon}</div>}
+      <div className="min-w-0 flex items-start gap-3">
+        {icon && <div className="mt-px size-7 rounded-lg bg-sunken text-muted flex items-center justify-center shrink-0 [&_svg]:size-4">{icon}</div>}
         <div className="min-w-0">
-          <h2 className="text-[15px] font-semibold text-ink leading-6">{title}</h2>
+          <h2 className="text-[15px] font-semibold text-ink leading-6 tracking-[-0.005em]">{title}</h2>
           {subtitle && <p className="text-[13px] text-muted mt-0.5">{subtitle}</p>}
         </div>
       </div>
@@ -62,18 +67,58 @@ export function CardHeader({ title, subtitle, action, icon, className }: { title
 
 export function PageHeader({ title, description, actions, eyebrow, badge }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode; badge?: ReactNode }) {
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
+    <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-7">
       <div className="min-w-0">
-        {eyebrow && <div className="text-[12px] font-medium uppercase tracking-[0.08em] text-muted mb-1.5">{eyebrow}</div>}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.015em] text-ink">{title}</h1>
+        {eyebrow && <div className="text-[12px] font-medium uppercase tracking-[0.08em] text-muted mb-2 [&_a]:hover:text-ink [&_a]:transition-colors">{eyebrow}</div>}
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-[26px] sm:text-[28px] leading-9 font-semibold tracking-[-0.02em] text-ink">{title}</h1>
           {badge}
         </div>
-        {description && <p className="text-[14px] text-muted mt-1.5 max-w-2xl">{description}</p>}
+        {description && <p className="text-[14px] text-muted mt-1.5 max-w-2xl leading-relaxed">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
     </header>
   );
+}
+
+// ─── Tabs ──────────────────────────────────────────────────────────────────
+
+/** Underlined page-level tabs that navigate (each tab is a URL). Scrolls with faded edges on narrow screens. */
+export function PageTabs({ tabs, label, className }: { tabs: { href: string; label: ReactNode; active: boolean; count?: number }[]; label?: string; className?: string }) {
+  return (
+    <div className={cn("relative mb-6 border-b border-line", className)}>
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-fade-x -mb-px" role="tablist" aria-label={label}>
+        {tabs.map((t) => (
+          <Link
+            key={t.href}
+            href={t.href}
+            role="tab"
+            aria-selected={t.active}
+            className={cn(
+              "group relative h-11 px-3 inline-flex items-center gap-2 text-[13.5px] font-medium whitespace-nowrap rounded-t-lg transition-colors",
+              t.active ? "text-ink" : "text-muted hover:text-ink",
+            )}
+          >
+            {t.label}
+            {t.count != null && t.count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold tabular flex items-center justify-center transition-colors", t.active ? "bg-brand-600 text-white" : "bg-sunken text-ink-2 group-hover:bg-line")}>{t.count}</span>}
+            <span className={cn("absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-all duration-200", t.active ? "bg-brand-600 opacity-100" : "bg-line-strong opacity-0 group-hover:opacity-100")} aria-hidden />
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Segmented filter pills (status, type). Use with buttons or links inside a `pillListClass` container. */
+export const pillListClass = "inline-flex max-w-full items-center gap-0.5 rounded-xl bg-sunken p-1 overflow-x-auto no-scrollbar";
+export function pillClass(on: boolean) {
+  return cn(
+    "h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 transition-[background-color,color,box-shadow] duration-150",
+    on ? "bg-surface text-ink shadow-[0_1px_2px_rgba(22,26,23,.08),0_0_0_1px_rgba(22,26,23,.04)]" : "text-muted hover:text-ink hover:bg-surface/60",
+  );
+}
+export function pillCountClass(on: boolean) {
+  return cn("text-[11.5px] tabular font-semibold", on ? "text-brand-700" : "text-subtle");
 }
 
 // ─── Badges & status ───────────────────────────────────────────────────────
@@ -189,13 +234,20 @@ export function Money({ cents, decimals, compact, sign, className }: { cents: nu
 export function KpiCard({ label, value, href, hint, className, children }: { label: string; value: ReactNode; href?: string; hint?: ReactNode; className?: string; children?: ReactNode }) {
   const body = (
     <>
-      <div className="text-[13px] text-muted font-medium">{label}</div>
-      <div className="mt-1.5 text-[24px] leading-8 font-semibold tracking-[-0.01em] text-ink tabular">{value}</div>
-      <div className="mt-1 min-h-5 text-[12px] text-muted">{hint}</div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-[13px] text-muted font-medium leading-5">{label}</div>
+        {href && <ArrowUpRight className="size-3.5 mt-0.5 text-subtle opacity-0 -translate-x-0.5 translate-y-0.5 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-brand-600 shrink-0" aria-hidden />}
+      </div>
+      <div className="mt-2 text-[26px] leading-8 font-semibold tracking-[-0.02em] text-ink tabular">{value}</div>
+      {hint != null && hint !== "" && <div className="mt-1 text-[12px] text-muted leading-5">{hint}</div>}
       {children}
     </>
   );
-  const cls = cn("block bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] px-4 py-3.5", href && "hover:border-line-strong hover:shadow-[0_2px_8px_-2px_rgba(22,26,23,.08)] transition", className);
+  const cls = cn(
+    "group block bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] px-4 py-4",
+    href && "transition-[box-shadow,border-color,transform] duration-200 hover:border-line-strong hover:shadow-[var(--shadow-raised)] hover:-translate-y-px",
+    className,
+  );
   return href ? (
     <Link href={href} className={cls}>
       {body}
@@ -235,22 +287,27 @@ export function ProgressRing({ value, size = 56, stroke = 6, label }: { value: n
 
 export function EmptyState({ icon, title, description, action, className }: { icon?: ReactNode; title: string; description?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center text-center px-6 py-12", className)}>
-      {icon && <div className="size-11 rounded-xl bg-sunken text-muted flex items-center justify-center mb-3">{icon}</div>}
-      <div className="text-[15px] font-semibold text-ink">{title}</div>
-      {description && <p className="text-[13px] text-muted mt-1 max-w-sm">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className={cn("flex flex-col items-center justify-center text-center px-6 py-14", className)}>
+      {icon && (
+        <div className="relative mb-4">
+          <div className="absolute inset-0 -m-2 rounded-2xl bg-brand-50/70 blur-md" aria-hidden />
+          <div className="relative size-12 rounded-2xl bg-gradient-to-b from-surface to-surface-2 border border-line shadow-[var(--shadow-raised)] text-brand-600 flex items-center justify-center [&_svg]:size-5">{icon}</div>
+        </div>
+      )}
+      <div className="text-[15px] font-semibold text-ink tracking-[-0.005em]">{title}</div>
+      {description && <p className="text-[13px] text-muted mt-1 max-w-sm leading-relaxed">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-sunken", className)} />;
+  return <div className={cn("skeleton rounded-lg", className)} aria-hidden />;
 }
 
 export function Notice({ tone = "info", title, children, icon, action, className }: { tone?: Tone; title?: ReactNode; children?: ReactNode; icon?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-start gap-3 rounded-xl px-4 py-3 ring-1 ring-inset text-[13px]", TONES[tone], className)} role={tone === "crit" ? "alert" : "status"}>
+    <div className={cn("flex items-start gap-3 rounded-xl px-4 py-3 ring-1 ring-inset text-[13px] leading-relaxed", TONES[tone], className)} role={tone === "crit" ? "alert" : "status"}>
       {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
       <div className="min-w-0 flex-1">
         {title && <div className="font-semibold">{title}</div>}
@@ -263,7 +320,7 @@ export function Notice({ tone = "info", title, children, icon, action, className
 
 // ─── Forms ─────────────────────────────────────────────────────────────────
 
-export const inputClass = "h-9 rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink placeholder:text-subtle hover:border-subtle/60 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-sunken disabled:text-subtle transition";
+export const inputClass = "h-9 rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 text-sm text-ink shadow-[var(--shadow-xs)] placeholder:text-subtle hover:border-subtle/60 focus:border-brand-500 focus:shadow-[var(--shadow-focus)] focus:outline-none focus-visible:outline-none disabled:bg-sunken disabled:text-subtle disabled:shadow-none transition-[border-color,box-shadow] duration-150";
 
 export function Field({ label, hint, error, children, htmlFor, className }: { label: string; hint?: ReactNode; error?: string; children: ReactNode; htmlFor?: string; className?: string }) {
   return (

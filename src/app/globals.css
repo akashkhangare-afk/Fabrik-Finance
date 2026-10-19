@@ -56,9 +56,19 @@
   --color-series-2: #e8913a;
   --color-series-3: #2a78d6;
 
-  --radius-card: 14px;
-  --shadow-card: 0 1px 2px rgba(22, 26, 23, 0.04), 0 1px 1px rgba(22, 26, 23, 0.03);
-  --shadow-pop: 0 12px 32px -8px rgba(22, 26, 23, 0.18), 0 2px 6px rgba(22, 26, 23, 0.06);
+  /* Shape: cards and overlays are soft, controls a step tighter. */
+  --radius-card: 16px;
+  --radius-control: 10px;
+
+  /* Elevation: one light source from above; each level adds a wider, softer shadow. */
+  --shadow-xs: 0 1px 2px rgba(22, 26, 23, 0.05);
+  --shadow-card: 0 1px 2px rgba(22, 26, 23, 0.04), 0 1px 3px rgba(22, 26, 23, 0.03);
+  --shadow-raised: 0 1px 2px rgba(22, 26, 23, 0.04), 0 6px 16px -4px rgba(22, 26, 23, 0.08);
+  --shadow-pop: 0 16px 40px -12px rgba(22, 26, 23, 0.22), 0 4px 10px -2px rgba(22, 26, 23, 0.06);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --shadow-focus: 0 0 0 3px rgba(47, 127, 90, 0.18);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 html {
@@ -98,15 +108,68 @@ body {
 }
 .animate-in { animation: fade-in 160ms ease-out both; }
 
+/* Page content settles in after a navigation. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-page { animation: rise-in 240ms var(--ease-out) both; }
+
 @keyframes slide-in {
-  from { transform: translateX(16px); opacity: 0; }
+  from { transform: translateX(24px); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
-.animate-drawer { animation: slide-in 180ms cubic-bezier(.2,.8,.2,1) both; }
+.animate-drawer { animation: slide-in 220ms var(--ease-out) both; }
+
+/* Dialogs and menus grow from where they open. */
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-pop { animation: pop-in 170ms var(--ease-out) both; transform-origin: top; }
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-backdrop { animation: backdrop-in 180ms ease-out both; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-toast { animation: toast-in 220ms var(--ease-out) both; }
+
+/* Skeletons shimmer instead of blinking. */
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-sunken) 25%, #e9e9e3 50%, var(--color-sunken) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-in, .animate-drawer { animation: none; }
+  .animate-in, .animate-drawer, .animate-page, .animate-pop, .animate-backdrop, .animate-toast { animation: none; }
+  .skeleton { animation: none; }
+  * { transition-duration: 0ms !important; }
 }
+
+/* Tables: quiet headers, comfortable rows, numbers that line up. */
+@layer base {
+  thead th { font-weight: 500; letter-spacing: 0.01em; }
+  tbody tr { transition: background-color 120ms ease-out; }
+  td, th { font-variant-numeric: tabular-nums; }
+}
+
+/* Horizontal scrollers (tabs, wide tables) fade at the edges instead of cutting off. */
+.scroll-fade-x {
+  mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+}
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 @media print {
   body { background: white; }
