@@ -19,6 +19,18 @@ async function signIn(page: Page, email: string) {
   await page.waitForURL((u) => !u.pathname.startsWith("/login"));
 }
 
+/**
+ * Moves to another page from inside the app, as a click would. Typing a URL (page.goto) counts as
+ * opening the app from outside, which deliberately starts again at Sign in.
+ */
+async function go(page: Page, path: string) {
+  const res = page.waitForResponse((r) => r.request().isNavigationRequest() && r.request().frame() === page.mainFrame());
+  await page.evaluate((p) => setTimeout(() => window.location.assign(p)), path);
+  const out = await res;
+  await page.waitForLoadState();
+  return out;
+}
+
 async function ask(page: Page, q: string) {
   const box = page.getByRole("textbox", { name: "Ask Fabrik" });
   await box.fill(q);
@@ -40,11 +52,11 @@ test("1 · Home: cash, revenue, profit, receivables, bills and the AI Finance Br
 
 test("2 · Books: AI categorizes agricultural transactions with explanations", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/books?q=JOHN%20DEERE");
+  await go(page, "/books?q=JOHN%20DEERE");
   await expect(page.getByRole("cell", { name: /Equipment \/ Machinery/ }).first()).toBeVisible();
-  await page.goto("/books?q=CASEYS");
+  await go(page, "/books?q=CASEYS");
   await expect(page.getByRole("cell", { name: /Fuel & Oil/ }).first()).toBeVisible();
-  await page.goto("/books?q=PIONEER");
+  await go(page, "/books?q=PIONEER");
   await expect(page.getByRole("cell", { name: /^Seed/ }).first()).toBeVisible();
   await page.locator("tbody tr").first().click();
   await expect(page.getByText("AI recommendation")).toBeVisible();
@@ -53,7 +65,7 @@ test("2 · Books: AI categorizes agricultural transactions with explanations", a
 
 test("3 · Document AI: upload the John Deere invoice, extract it and match it", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/documents");
+  await go(page, "/documents");
   await page.getByRole("button", { name: /Sample John Deere invoice/ }).click();
   await expect(page.getByText("JD-28712").first()).toBeVisible();
   await expect(page.getByText(/Match confidence: 99%/)).toBeVisible();
@@ -63,7 +75,7 @@ test("3 · Document AI: upload the John Deere invoice, extract it and match it",
 
 test("4 · CFO: 'Can we afford another $1 million of farmland?' runs a scenario", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/ask");
+  await go(page, "/ask");
   await ask(page, "Can we afford to purchase another $1 million of farmland?");
   await expect(page.getByText(/purchase farmland/).first()).toBeVisible();
   await expect(page.getByText("Debt service coverage").first()).toBeVisible();
@@ -74,7 +86,7 @@ test("4 · CFO: 'Can we afford another $1 million of farmland?' runs a scenario"
 
 test("5 · Funding: high-potential USDA/FSA match with an explanation and official source", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/funding");
+  await go(page, "/funding");
   await expect(page.getByText(/programs identified/)).toBeVisible();
   await page.getByRole("link", { name: /Agriculture Risk Coverage/ }).click();
   await expect(page.getByText("Why Fabrik identified this")).toBeVisible();
@@ -84,7 +96,7 @@ test("5 · Funding: high-potential USDA/FSA match with an explanation and offici
 
 test("6 · Ask Fabrik wow moment: programs, then documents for 'these applications'", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/ask");
+  await go(page, "/ask");
   await ask(page, "What government programs could potentially help Smith Family Farms expand?");
   await expect(page.getByText(/could potentially help with expansion/)).toBeVisible();
   await ask(page, "What documents do we already have for these applications?");
@@ -106,21 +118,36 @@ test("Access control: clients can't open the Operations Portal; APIs require a s
   const anon = await request.get("/api/v1/search?q=deere");
   expect(anon.status()).toBe(401);
   await signIn(page, "dan@smithfamilyfarms.example");
-  await page.goto("/ops");
+  await go(page, "/ops");
   await expect(page.getByText(/Fabrik staff only/i)).toBeVisible();
 });
 
 test("Screens outside the PRD are hidden unless SHOW_EXTRAS is on", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
   await expect(page.getByRole("link", { name: "Tax & Credits" })).toHaveCount(0);
-  expect((await page.goto("/tax"))?.status()).toBe(404);
+  expect((await go(page, "/tax"))?.status()).toBe(404);
 });
 
 test("Operations: admin signs in with MFA and sees the portfolio", async ({ page }) => {
   await signIn(page, "priya.nair@fabrik.example");
-  await page.goto("/ops");
+  await go(page, "/ops");
   await expect(page.getByRole("heading", { name: "Fabrik Operations" })).toBeVisible();
   await expect(page.getByText(/Human minutes per client per month/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Requirements" })).toHaveCount(0);
-  expect((await page.goto("/ops/requirements"))?.status()).toBe(404);
+  expect((await go(page, "/ops/requirements"))?.status()).toBe(404);
+});
+
+test("Opening the app from outside starts at Sign in; reloads and in-app moves keep the session", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("Demo persona").selectOption({ label: "Karen Smith — Client finance user" });
+  await page.getByRole("button", { name: "Sign in as Karen Smith" }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+  await go(page, "/books");
+  await expect(page).toHaveURL(/\/books$/);
+  await page.goto("/books");
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  expect((await page.context().cookies()).some((c) => c.name === "fabrik_session")).toBe(false);
 });

@@ -72,7 +72,7 @@ The full matrix is in [§13](#13-permission-matrix). The source is `src/server/a
 
 - Password for all demo accounts: **`FabrikDemo!2026`**.
 - Demo clock: **2026-10-16** (`FABRIK_CLOCK`).
-- **[demo]** The login page offers one-click personas for the first five users below.
+- **[demo]** The login page offers a persona dropdown for the first five users below: pick one → **Sign in as <name>**.
 
 | User | Email | Role | Organizations |
 |---|---|---|---|
@@ -179,13 +179,14 @@ What happens to a transaction, step by step:
 
 | Step | Screen | What happens |
 |---|---|---|
-| Sign in | `/login` | Email + password → **Sign in**.<br>Errors: "Enter your email and password." / "That email and password don't match an active account." Timing is the same for unknown emails.<br>**[demo]** "Expo demo accounts" box with 5 one-click personas. |
+| Sign in | `/login` | Email + password → **Sign in**.<br>Errors: "Enter your email and password." / "That email and password don't match an active account." Timing is the same for unknown emails.<br>**[demo]** "Expo demo accounts" box: a persona dropdown (name — role) and a **Sign in as <name>** button. |
 | Throttling | — | 6 failed attempts per email+IP in 15 minutes → "Too many attempts. Wait 15 minutes or reset your password." |
 | MFA | `/login/mfa` | Users with MFA (Priya) enter a 6-digit authenticator code → **Verify and continue**.<br>**[demo]** The current code is shown for the demo secret. |
 | Landing | — | Staff → `/ops`; clients → `/` (Home). |
 | Forgot password | `/forgot-password` | **Send reset link**. The response is always "Check your email…". The link expires in 1 hour.<br>**[demo]** Emails go to the development outbox (Operations → Administration). |
 | Reset / accept invite | `/reset-password?token=…` | "Choose a new password" (or "Set up your account" for an invite). Policy: 12+ characters, upper and lower case, a number.<br>Success signs out all sessions → `/login?reset=1` ("Password updated"). |
 | Session | — | Signed httpOnly cookie. **2 h idle timeout, 12 h absolute.** A fresh session id at every sign-in. |
+| Opening the app | any page | Opening the app from outside it — typed URL, bookmark, new tab, or a link from another site or email — always lands on `/login` and ends the earlier session (`src/proxy.ts`, using the browser's `Sec-Fetch-Site`). Reloading a page and moving around inside the app keep the session. Not affected: `/forgot-password`, `/reset-password` (emailed links), `/login/mfa` and the API. The server-side session record is not deleted here; it expires on the idle timeout. |
 | Switch organization | Header org switcher | "Switch organization" popover with search. Access is checked server-side, and the switch is audited (`auth.organization_switched`). |
 | Sign out | User menu → **Sign out** | Session deleted → `/login`. Audit `auth.logout`. |
 

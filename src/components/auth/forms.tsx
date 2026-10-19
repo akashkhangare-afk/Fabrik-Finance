@@ -4,8 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 import { requestPasswordReset, resetPassword, signIn, verifyMfa } from "@/app/actions/auth";
-import { Avatar, Button, Field, Input, Notice, Badge } from "@/components/ui/primitives";
-import { cn } from "@/lib/cn";
+import { Avatar, Button, Field, Input, Notice, Badge, Select } from "@/components/ui/primitives";
 
 export interface DemoAccountView {
   email: string;
@@ -53,24 +52,40 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
             <Badge tone="brand">Synthetic data</Badge>
           </div>
           <p className="text-[12px] text-muted mt-1">Smith Family Farms LLC · Story County, Iowa. Choose a persona to sign in.</p>
-          <div className="mt-3 grid gap-1.5">
-            {demo.map((d) => (
-              <button key={d.email} type="button" onClick={() => use(d.email)} disabled={pending} className="group flex items-center justify-between gap-3 rounded-xl bg-surface border border-line px-3 py-2.5 text-left shadow-[var(--shadow-xs)] hover:border-brand-300 hover:shadow-[var(--shadow-raised)] hover:-translate-y-px active:translate-y-0 transition-[border-color,box-shadow,transform] duration-200 disabled:opacity-60">
-                <Avatar name={d.name} hue={d.email.includes("fabrik") ? 262 : 150} size={32} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-medium text-ink truncate">{d.name}</div>
-                  <div className="text-[12px] text-muted truncate">{d.persona}</div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {d.mfa && <KeyRound className="size-3.5 text-muted" aria-label="MFA" />}
-                  <span className={cn("text-[12px] font-medium text-brand-700 transition-all duration-200", picked === d.email && pending ? "opacity-100" : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0")}>{picked === d.email && pending ? "Signing in…" : "Sign in →"}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          <DemoPersonaPicker demo={demo} pending={pending} picked={picked} onSignIn={use} />
           <p className="text-[11.5px] text-muted mt-3">Password for all demo accounts: <code className="font-mono text-ink-2">{password}</code></p>
         </div>
       )}
+    </div>
+  );
+}
+
+function DemoPersonaPicker({ demo, pending, picked, onSignIn }: { demo: DemoAccountView[]; pending: boolean; picked?: string; onSignIn: (email: string) => void }) {
+  const [email, setEmail] = useState(demo[0]?.email ?? "");
+  const d = demo.find((a) => a.email === email) ?? demo[0];
+  if (!d) return null;
+  return (
+    <div className="mt-3 space-y-2.5">
+      <label htmlFor="demo-persona" className="sr-only">Demo persona</label>
+      <div className="flex items-center gap-2.5">
+        <Avatar name={d.name} hue={d.email.includes("fabrik") ? 262 : 150} size={36} />
+        <Select id="demo-persona" value={email} onChange={(e) => setEmail(e.target.value)} disabled={pending} className="w-0 flex-1 min-w-0 h-11 text-[13.5px]">
+          {demo.map((a) => (
+            <option key={a.email} value={a.email}>
+              {a.name} — {a.persona}
+            </option>
+          ))}
+        </Select>
+      </div>
+      {d.mfa && (
+        <p className="flex items-center gap-1.5 text-[12px] text-muted">
+          <KeyRound className="size-3.5 shrink-0" aria-hidden /> Asks for a 6-digit code next; the demo shows it on screen.
+        </p>
+      )}
+      <Button type="button" variant="secondary" className="w-full" disabled={pending} onClick={() => onSignIn(d.email)}>
+        {picked === d.email && pending ? "Signing in…" : `Sign in as ${d.name}`}
+        {!(picked === d.email && pending) && <ArrowRight className="size-4" />}
+      </Button>
     </div>
   );
 }

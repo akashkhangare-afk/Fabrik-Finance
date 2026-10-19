@@ -343,7 +343,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
 
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (
-    <select className={cn(inputClass, widthOr(className), "pr-8 appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23646b66%22 stroke-width=%222%22><path d=%22m6 9 6 6 6-6%22/></svg>')] bg-no-repeat bg-[right_10px_center]", className)} {...props}>
+    <select className={cn(inputClass, widthOr(className), "pr-8 appearance-none select-chevron", className)} {...props}>
       {children}
     </select>
   );
