@@ -1,6 +1,6 @@
 # Fabrik Finance — App Workflow
 
-> **Last updated:** 2026-10-19 · matches branch `perf/faster-clicks` (main + speed changes)
+> **Last updated:** 2026-10-19 · matches branch `design/ui-polish` (main + speed changes + UI redesign)
 > **Keep this file current.** Any change to screens, routes, buttons, statuses, roles, permissions, navigation, server actions, seed data or feature flags must update this file in the same commit. See [How to maintain this file](#16-how-to-maintain-this-file).
 
 This document describes, step by step, how the Fabrik Finance prototype works for every role, and links each step to the PRD.
@@ -117,7 +117,7 @@ The source is `src/app/(app)/layout.tsx`.
 **[extras]** adds Tax & Credits, the Requirements matrix, and global search (Ctrl K).
 
 **Navigation speed**
-- A click shows a loading skeleton immediately (`src/app/(app)/loading.tsx`).
+- A click shows a page-shaped loading skeleton immediately (`src/app/(app)/loading.tsx`), and the new page fades in.
 - Hovering or focusing a sidebar link prefetches that page. The prefetched page is reused for up to 30 seconds.
 
 ---
@@ -324,6 +324,7 @@ Each item type has its own card and action:
    - **Correct fields** → "Confirm the key fields" → **Save & match** (re-runs matching).
    - No match on an invoice → pick a category → **Create bill** → a new bill in **Needs review** in Bills.
 5. **Tabs:** All · Invoices · Receipts · Statements. **[extras]** "Entity & farm".
+6. **List size:** the table shows 50 documents at a time; **Show *N* more** loads the next 50. Changing the tab or search starts again at 50.
 
 ### 5.5 Bills Lite (E§10)
 
@@ -576,7 +577,7 @@ Staff only. Non-staff see "Fabrik staff only".
 
 ### 9.1 Operations dashboard (G§16, G§27, E§24)
 
-`/ops` "Fabrik Operations" covers the clients the user can access:
+`/ops` "Fabrik Operations" covers the clients the user can access. The north-star figure leads in a highlighted banner, followed by two groups, **Clients** and **Transactions**:
 
 | Figure | Meaning |
 |---|---|
