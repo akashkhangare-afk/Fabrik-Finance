@@ -41,7 +41,6 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
     <div className="max-w-[920px]">
       <PageHeader
         title="Finance Inbox"
-        description="Fabrik only interrupts you when a person's input or decision is needed. Answers become structured bookkeeping information — no email chains."
         badge={summary.total ? <Badge tone="risk">{summary.total} open</Badge> : <Badge tone="ok">All clear</Badge>}
       />
       <div className="flex items-center gap-1 border-b border-line mb-5" role="tablist">
@@ -54,7 +53,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
       </div>
       {data.length === 0 ? (
         <Card>
-          <EmptyState icon={<InboxIcon className="size-5" />} title={view === "open" ? "Nothing needs your attention" : "No answered items yet"} description={view === "open" ? "Your books are being maintained. Fabrik will ask here when it genuinely needs your input." : undefined} />
+          <EmptyState icon={<InboxIcon className="size-5" />} title={view === "open" ? "Nothing needs your attention" : "No answered items yet"} />
         </Card>
       ) : (
         <InboxList items={data} canUpload={hasPerm(ctx, "documents:upload")} canApproveBills={hasPerm(ctx, "bills:approve")} demo={demoMode() && ctx.org.isDemo} />
