@@ -27,12 +27,12 @@ export default async function FundingPage({ searchParams }: { searchParams: Prom
       <div className="space-y-3 mb-6">
         <Card className="p-5">
           <div className="text-[13px] text-muted">Potential opportunities</div>
-          <div className="text-[30px] font-semibold tracking-[-0.02em] mt-0.5">{s.identified} programs identified</div>
+          <div className="text-[34px] font-normal tracking-[-0.035em] mt-0.5">{s.identified} programs identified</div>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[["High potential", s.high, "ok"], ["Possible", s.possible, "info"], ["More info required", s.moreInfo, "warn"]].map(([l, n, t]) => (
-              <div key={l as string} className="rounded-xl border border-line px-3 py-2.5">
+              <div key={l as string} className="rounded-2xl bg-sunken px-4 py-3">
                 <Badge tone={t as Tone} dot>{l as string}</Badge>
-                <div className="text-[22px] font-semibold tabular mt-1">{n as number}</div>
+                <div className="text-[26px] font-normal tracking-[-0.03em] tabular mt-1">{n as number}</div>
               </div>
             ))}
           </div>
@@ -54,7 +54,7 @@ export default async function FundingPage({ searchParams }: { searchParams: Prom
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">{p.agency}</div>
                     <div className="text-right shrink-0">
-                      <div className="text-[20px] font-semibold tabular leading-none">{m.score}%</div>
+                      <div className="text-[24px] font-normal tracking-[-0.03em] tabular leading-none">{m.score}%</div>
                       <div className="text-[11px] text-muted mt-1">match score</div>
                     </div>
                   </div>

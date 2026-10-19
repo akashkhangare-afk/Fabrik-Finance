@@ -88,14 +88,14 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
   const nav = (compact: boolean) => (
     <nav aria-label="Main" className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4">
       {groups.map((g) => (
-        <div key={g.label} className={cn("mt-4 first:mt-1", g.staff && "mt-5 pt-4 border-t border-dashed border-line-strong")}>
+        <div key={g.label} className={cn("mt-5 first:mt-1", g.staff && "mt-6 pt-5 border-t border-dashed border-line-strong")}>
           {!compact && (
-            <div className={cn("px-2.5 mb-1 h-6 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]", g.staff ? "text-ai-600" : "text-subtle")}>
+            <div className={cn("px-3 mb-1.5 h-6 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em]", g.staff ? "text-ai-600" : "text-subtle")}>
               {g.staff && <span className="size-1.5 rounded-full bg-ai-500" aria-hidden />}
               {g.label}
             </div>
           )}
-          <ul className="space-y-px">
+          <ul className="space-y-0.5">
             {g.items.map((it) => {
               const Icon = ICONS[it.icon] ?? House;
               const active = isActive(pathname, it.href);
@@ -106,20 +106,19 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
                     title={compact ? it.label : undefined}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "group relative flex items-center gap-2.5 rounded-[var(--radius-control)] h-9 text-[13.5px] transition-[background-color,color,box-shadow] duration-150",
-                      compact ? "justify-center px-0" : "px-2.5",
-                      active ? "bg-surface text-ink font-medium shadow-[var(--shadow-xs),0_0_0_1px_var(--color-line)]" : "text-ink-2 hover:bg-sunken hover:text-ink",
+                      "group relative flex items-center gap-3 rounded-full h-10 text-[13.5px] transition-[background-color,color,box-shadow] duration-150",
+                      compact ? "justify-center px-0" : "px-3.5",
+                      active ? "bg-brand-700 text-white font-medium shadow-[0_6px_16px_-6px_rgba(28,34,48,.45)]" : "text-ink-2 hover:bg-surface/80 hover:text-ink",
                     )}
                   >
-                    {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-brand-600" aria-hidden />}
-                    <Icon className={cn("size-[18px] shrink-0 transition-colors", active ? "text-brand-600" : "text-muted group-hover:text-ink-2")} />
+                    <Icon className={cn("size-[18px] shrink-0 transition-colors", active ? "text-white" : "text-muted group-hover:text-ink")} />
                     {!compact && <span className="truncate flex-1">{it.label}</span>}
-                    {!compact && it.tag && <span className="text-[10px] font-semibold uppercase tracking-wide text-ai-600 bg-ai-50 rounded px-1.5 py-0.5">{it.tag}</span>}
+                    {!compact && it.tag && <span className="text-[10px] font-semibold uppercase tracking-wide text-ai-600 bg-ai-50 rounded-full px-2 py-0.5">{it.tag}</span>}
                     {it.badge ? (
                       compact ? (
-                        <span className="absolute top-1.5 right-3 size-2 rounded-full bg-risk-600 ring-2 ring-canvas" />
+                        <span className="absolute top-2 right-3 size-2 rounded-full bg-accent-600 ring-2 ring-canvas" />
                       ) : (
-                        <span className={cn("min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center tabular", active ? "bg-risk-600 text-white" : "bg-risk-50 text-risk-600 ring-1 ring-inset ring-[#f1c9b4]")}>{it.badge}</span>
+                        <span className="min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center tabular bg-accent-600 text-white">{it.badge}</span>
                       )
                     ) : null}
                   </IntentLink>
@@ -135,13 +134,13 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
   return (
     <div className="min-h-dvh">
       {/* Desktop sidebar */}
-      <aside className={cn("no-print hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col bg-surface-2 border-r border-line transition-[width] duration-200", collapsed ? "w-[68px]" : "w-[256px]")}>
-        <div className={cn("h-16 flex items-center shrink-0", collapsed ? "justify-center" : "px-5")}>
+      <aside className={cn("no-print hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col bg-canvas transition-[width] duration-200", collapsed ? "w-[72px]" : "w-[260px]")}>
+        <div className={cn("h-[72px] flex items-center shrink-0", collapsed ? "justify-center" : "px-6")}>
           <Link href="/" aria-label="Fabrik Finance home" className="rounded-lg">{collapsed ? <LogoMark /> : <Wordmark />}</Link>
         </div>
         {nav(collapsed)}
-        <div className="border-t border-line p-3">
-          <button onClick={toggle} className={cn("flex items-center gap-2 w-full h-9 rounded-[var(--radius-control)] text-[13px] text-muted hover:bg-sunken hover:text-ink transition-colors", collapsed ? "justify-center" : "px-2.5")} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+        <div className="p-3">
+          <button onClick={toggle} className={cn("flex items-center gap-2 w-full h-10 rounded-full text-[13px] text-muted hover:bg-surface/80 hover:text-ink transition-colors", collapsed ? "justify-center" : "px-3.5")} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
             {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
             {!collapsed && "Collapse"}
           </button>
@@ -151,11 +150,11 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
       {/* Mobile sidebar */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-[65]">
-          <div className="animate-backdrop absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={() => setMobileOpen(false)} />
-          <aside className="animate-in absolute inset-y-0 left-0 w-[288px] max-w-[85vw] bg-surface-2 flex flex-col shadow-[var(--shadow-pop)] rounded-r-2xl">
+          <div className="animate-backdrop absolute inset-0 bg-brand-900/30 backdrop-blur-[3px]" onClick={() => setMobileOpen(false)} />
+          <aside className="animate-in absolute inset-y-0 left-0 w-[288px] max-w-[85vw] bg-canvas flex flex-col shadow-[var(--shadow-pop)] rounded-r-[28px]">
             <div className="h-16 flex items-center justify-between px-5">
               <Wordmark />
-              <button onClick={() => setMobileOpen(false)} className="size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Close menu">
+              <button onClick={() => setMobileOpen(false)} className="size-10 rounded-full bg-surface/80 hover:bg-surface flex items-center justify-center" aria-label="Close menu">
                 <X className="size-5" />
               </button>
             </div>
@@ -164,27 +163,27 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
         </div>
       )}
 
-      <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-[68px]" : "lg:pl-[256px]")}>
-        <header className="no-print sticky top-0 z-30 h-16 bg-canvas/80 backdrop-blur-xl backdrop-saturate-150 border-b border-line/70">
+      <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-[72px]" : "lg:pl-[260px]")}>
+        <header className="no-print sticky top-0 z-30 h-[72px] bg-canvas/85 backdrop-blur-xl backdrop-saturate-150">
           <div className="h-full flex items-center gap-2 px-4 sm:px-6 lg:px-8">
-            <button onClick={() => setMobileOpen(true)} className="lg:hidden size-9 -ml-1 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Open menu">
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden size-10 -ml-1 rounded-full bg-surface/80 hover:bg-surface flex items-center justify-center" aria-label="Open menu">
               <Menu className="size-5" />
             </button>
             <OrgSwitcher org={org} orgs={orgs} />
-            {search && <button onClick={() => setPaletteOpen(true)} className="ml-1 hidden md:flex items-center gap-2 h-9 w-[min(34vw,360px)] rounded-lg border border-line bg-surface px-3 text-[13px] text-subtle hover:border-line-strong transition" aria-label="Search">
-              <Search className="size-4" />
+            {search && <button onClick={() => setPaletteOpen(true)} className="ml-1 hidden md:flex items-center gap-2 h-10 w-[min(34vw,380px)] rounded-full border border-line-strong/70 bg-surface/70 pl-4 pr-3 text-[13px] text-subtle hover:bg-surface hover:border-line-strong transition" aria-label="Search">
               <span className="flex-1 text-left truncate">Search everything…</span>
               <Kbd>Ctrl K</Kbd>
+              <Search className="size-4 text-ink-2" />
             </button>}
             <div className="flex-1" />
             {sync && (
-              <Link href="/integrations" className={cn("hidden xl:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full text-[12px] transition-colors", sync.status === "connected" ? "text-muted hover:bg-sunken hover:text-ink" : "text-crit-600 bg-crit-50 ring-1 ring-inset ring-[#f0c2c2]")} title="QuickBooks Online sync">
+              <Link href="/integrations" className={cn("hidden xl:inline-flex items-center gap-2 h-10 px-4 rounded-full text-[12.5px] transition-colors", sync.status === "connected" ? "text-ink-2 bg-surface/70 border border-line-strong/70 hover:bg-surface" : "text-crit-600 bg-crit-50 ring-1 ring-inset ring-crit-100")} title="QuickBooks Online sync">
                 {sync.status === "connected" ? <span className="relative flex size-2"><span className="absolute inset-0 rounded-full bg-ok-600/40 animate-ping [animation-duration:2.5s]" /><span className="relative size-2 rounded-full bg-ok-600" /></span> : <RefreshCw className="size-3.5" />}
                 {sync.status === "connected" ? `QuickBooks synced ${sync.at ?? ""}` : "QuickBooks needs attention"}
               </Link>
             )}
             {search && (
-              <button onClick={() => setPaletteOpen(true)} className="md:hidden size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Search">
+              <button onClick={() => setPaletteOpen(true)} className="md:hidden size-10 rounded-full bg-surface/70 border border-line-strong/70 hover:bg-surface flex items-center justify-center" aria-label="Search">
                 <Search className="size-[18px]" />
               </button>
             )}
@@ -193,7 +192,7 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
           </div>
         </header>
         {/* Extra bottom space keeps the floating Ask Fabrik button from covering the last row of content. */}
-        <main id="main" key={pathname} className="animate-page px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8 pb-28 max-w-[1440px] mx-auto">{children}</main>
+        <main id="main" key={pathname} className="animate-page px-4 sm:px-6 lg:px-8 pt-4 lg:pt-6 pb-28 max-w-[1440px] mx-auto">{children}</main>
       </div>
       {search && <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />}
       {pathname !== "/ask" && <AskLauncher />}
@@ -208,7 +207,7 @@ function OrgSwitcher({ org, orgs }: { org: Props["org"]; orgs: Props["orgs"] }) 
   const [q, setQ] = useState("");
   if (orgs.length <= 1)
     return (
-      <div className="flex items-center gap-2 h-9 px-2.5 rounded-lg text-[13.5px] font-medium min-w-0">
+      <div className="flex items-center gap-2 h-10 px-4 rounded-full bg-surface/70 border border-line-strong/70 text-[13.5px] font-medium min-w-0">
         <Building2 className="size-4 text-muted shrink-0" />
         <span className="truncate">{org.name}</span>
         {org.isDemo && <Badge tone="brand">Demo</Badge>}
@@ -221,7 +220,7 @@ function OrgSwitcher({ org, orgs }: { org: Props["org"]; orgs: Props["orgs"] }) 
       width={320}
       label="Switch organization"
       trigger={({ toggle, open }) => (
-        <button onClick={toggle} aria-expanded={open} className="flex items-center gap-2 h-9 pl-2.5 pr-2 rounded-lg text-[13.5px] font-medium hover:bg-sunken min-w-0 max-w-[50vw] md:max-w-[260px]">
+        <button onClick={toggle} aria-expanded={open} className="flex items-center gap-2 h-10 pl-4 pr-3 rounded-full bg-surface/70 border border-line-strong/70 text-[13.5px] font-medium hover:bg-surface min-w-0 max-w-[50vw] md:max-w-[280px] transition-colors">
           <Building2 className="size-4 text-muted shrink-0" />
           <span className="truncate">{org.name}</span>
           {org.isDemo && <Badge tone="brand" className="hidden sm:inline-flex">Demo</Badge>}
@@ -232,7 +231,7 @@ function OrgSwitcher({ org, orgs }: { org: Props["org"]; orgs: Props["orgs"] }) 
       {(close) => (
         <div>
           <div className="p-2 border-b border-line">
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${orgs.length} organizations`} className="w-full h-8 px-2.5 rounded-md bg-sunken text-[13px] outline-none" />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${orgs.length} organizations`} className="w-full h-9 px-3.5 rounded-full bg-sunken text-[13px] outline-none focus:ring-2 focus:ring-brand-200" />
           </div>
           <div className="max-h-80 overflow-y-auto p-1">
             {list.map((o) => (
@@ -247,10 +246,10 @@ function OrgSwitcher({ org, orgs }: { org: Props["org"]; orgs: Props["orgs"] }) 
                     else router.refresh();
                   })
                 }
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left hover:bg-sunken"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-sunken"
               >
                 <div className="min-w-0 flex-1 text-[13px] font-medium truncate">{o.name}</div>
-                {o.id === org.id && <Check className="size-4 text-brand-600" />}
+                {o.id === org.id && <Check className="size-4 text-accent-600" />}
               </button>
             ))}
           </div>
@@ -268,9 +267,9 @@ function Notifications({ items }: { items: Props["notifications"] }) {
       width={380}
       label="Notifications"
       trigger={({ toggle, open }) => (
-        <button onClick={toggle} aria-expanded={open} className="relative size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
+        <button onClick={toggle} aria-expanded={open} className="relative size-10 rounded-full bg-surface/70 border border-line-strong/70 hover:bg-surface flex items-center justify-center transition-colors" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
           <Bell className="size-[18px] text-ink-2" />
-          {unread > 0 && <span className="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 rounded-full bg-risk-600 text-white text-[10px] font-semibold flex items-center justify-center">{unread}</span>}
+          {unread > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent-600 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-canvas">{unread}</span>}
         </button>
       )}
     >
@@ -296,7 +295,7 @@ function Notifications({ items }: { items: Props["notifications"] }) {
                 }}
                 className="flex gap-3 px-4 py-3 border-b border-line last:border-0 hover:bg-surface-2"
               >
-                <span className={cn("mt-1.5 size-2 rounded-full shrink-0", n.read ? "bg-transparent" : "bg-brand-500")} />
+                <span className={cn("mt-1.5 size-2 rounded-full shrink-0", n.read ? "bg-transparent" : "bg-accent-600")} />
                 <div className="min-w-0">
                   <div className={cn("text-[13px]", n.read ? "text-ink-2" : "font-semibold text-ink")}>{n.title}</div>
                   {n.body && <div className="text-[12.5px] text-muted mt-0.5 line-clamp-2">{n.body}</div>}
@@ -317,8 +316,8 @@ function UserMenu({ user, isStaff }: { user: Props["user"]; isStaff: boolean }) 
       width={260}
       label="Account"
       trigger={({ toggle, open }) => (
-        <button onClick={toggle} aria-expanded={open} className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-lg hover:bg-sunken" aria-label="Account menu">
-          <Avatar name={user.name} hue={user.hue} />
+        <button onClick={toggle} aria-expanded={open} className="flex items-center gap-2.5 h-10 pl-1 pr-1 sm:pr-4 rounded-full hover:bg-surface/80 transition-colors" aria-label="Account menu">
+          <Avatar name={user.name} hue={user.hue} size={36} />
           <span className="hidden sm:block text-left leading-tight">
             <span className="block text-[13px] font-medium max-w-[140px] truncate">{user.name}</span>
             <span className="block text-[11px] text-muted max-w-[140px] truncate">{user.role}</span>
@@ -334,11 +333,11 @@ function UserMenu({ user, isStaff }: { user: Props["user"]; isStaff: boolean }) 
             <Badge tone={isStaff ? "ai" : "brand"} className="mt-2">{user.role}</Badge>
           </div>
           <div className="p-1">
-            <Link href="/settings?tab=profile" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] hover:bg-sunken">
+            <Link href="/settings?tab=profile" className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] hover:bg-sunken">
               <Settings className="size-4 text-muted" /> Profile & security
             </Link>
             <form action={signOut}>
-              <button type="submit" className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] hover:bg-sunken text-left">
+              <button type="submit" className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] hover:bg-sunken text-left">
                 <LogOut className="size-4 text-muted" /> Sign out
               </button>
             </form>

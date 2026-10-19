@@ -105,7 +105,7 @@ export default async function CfoPage({ searchParams }: { searchParams: Promise<
             {ratios.map((r) => (
               <div key={r.label} className="px-5 py-4">
                 <div className="text-[12.5px] text-muted">{r.label}</div>
-                <div className="text-[22px] font-semibold tabular mt-0.5">{r.value}</div>
+                <div className="text-[26px] font-normal tracking-[-0.03em] tabular mt-0.5">{r.value}</div>
               </div>
             ))}
           </div>

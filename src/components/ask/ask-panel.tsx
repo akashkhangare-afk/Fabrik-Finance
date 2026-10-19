@@ -187,10 +187,10 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
                 <Sparkles className="size-5" />
               </div>
             </div>
-            <h3 className={cn("mt-4 font-semibold tracking-[-0.01em]", compact ? "text-[17px]" : "text-[22px]")}>Ask anything about {orgName ?? "your finances"}</h3>
+            <h3 className={cn("mt-4 font-normal tracking-[-0.025em]", compact ? "text-[20px]" : "text-[30px]")}>Ask anything about {orgName ?? "your finances"}</h3>
             <div className={cn("mt-6 grid gap-2 text-left", compact ? "" : "sm:grid-cols-2")}>
               {STARTERS.slice(0, compact ? 5 : 8).map((s) => (
-                <button key={s} onClick={() => send(s)} className="group flex items-center gap-3 text-left text-[13px] rounded-xl border border-line bg-surface px-3.5 py-3 shadow-[var(--shadow-xs)] hover:border-ai-100 hover:bg-ai-50/40 hover:shadow-[var(--shadow-raised)] hover:-translate-y-px active:translate-y-0 transition-[border-color,background-color,box-shadow,transform] duration-200">
+                <button key={s} onClick={() => send(s)} className="group flex items-center gap-3 text-left text-[13px] rounded-2xl border border-line bg-surface px-4 py-3 shadow-[var(--shadow-xs)] hover:border-ai-100 hover:bg-ai-50/40 hover:shadow-[var(--shadow-raised)] hover:-translate-y-px active:translate-y-0 transition-[border-color,background-color,box-shadow,transform] duration-200">
                   <span className="flex-1">{s}</span>
                   <ArrowUp className="size-3.5 rotate-45 text-subtle shrink-0 transition-colors group-hover:text-ai-600" aria-hidden />
                 </button>
@@ -240,7 +240,7 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
         }}
         className={cn("shrink-0 border-t border-line bg-surface", compact ? "p-3" : "pt-4")}
       >
-        <div className="flex items-end gap-2 rounded-2xl border border-line-strong bg-surface pl-4 pr-2 py-2 shadow-[var(--shadow-xs)] transition-[border-color,box-shadow] duration-150 focus-within:border-brand-500 focus-within:shadow-[var(--shadow-focus)]">
+        <div className="flex items-end gap-2 rounded-[26px] border border-line-strong bg-surface pl-5 pr-2 py-2 shadow-[var(--shadow-xs)] transition-[border-color,box-shadow] duration-150 focus-within:border-brand-500 focus-within:shadow-[var(--shadow-focus)]">
           <textarea
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -256,7 +256,7 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
             className="flex-1 resize-none bg-transparent outline-none text-[14px] py-1 max-h-32"
             aria-label="Ask Fabrik"
           />
-          <button type="submit" disabled={!q.trim() || pending} className="size-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-[var(--shadow-inset)] hover:bg-brand-700 active:scale-95 transition-[background-color,transform] duration-150 disabled:bg-line-strong disabled:shadow-none" aria-label="Send">
+          <button type="submit" disabled={!q.trim() || pending} className="size-10 rounded-full bg-brand-700 text-white flex items-center justify-center shadow-[var(--shadow-inset)] hover:bg-brand-800 active:scale-95 transition-[background-color,transform] duration-150 disabled:bg-line-strong disabled:shadow-none" aria-label="Send">
             <ArrowUp className="size-4" />
           </button>
         </div>
@@ -276,7 +276,7 @@ export function AskLauncher() {
   }, [open]);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="no-print group fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 h-11 px-3.5 sm:pl-3.5 sm:pr-4 rounded-full bg-gradient-to-b from-[#24302a] to-ink text-white ring-1 ring-white/10 shadow-[var(--shadow-pop),var(--shadow-inset)] hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-12px_rgba(22,26,23,.4)] active:translate-y-0 transition-[transform,box-shadow] duration-200" aria-label="Ask Fabrik">
+      <button onClick={() => setOpen(true)} className="no-print group fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 h-11 px-3.5 sm:pl-3.5 sm:pr-4 rounded-full bg-gradient-to-b from-brand-600 to-brand-800 text-white ring-1 ring-white/10 shadow-[var(--shadow-pop),var(--shadow-inset)] hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-12px_rgba(28,34,48,.45)] active:translate-y-0 transition-[transform,box-shadow] duration-200" aria-label="Ask Fabrik">
         <Sparkles className="size-4.5 text-brand-300 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
         <span className="text-[13.5px] font-medium hidden sm:inline">Ask Fabrik</span>
       </button>

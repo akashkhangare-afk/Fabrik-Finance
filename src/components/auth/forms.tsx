@@ -28,7 +28,7 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
   };
   return (
     <div>
-      <h2 className="text-[28px] leading-9 font-semibold tracking-[-0.02em]">Sign in</h2>
+      <h2 className="text-[36px] leading-tight font-normal tracking-[-0.035em]">Sign in</h2>
       {resetDone && <Notice tone="ok" className="mt-5" title="Password updated">Sign in with your new password.</Notice>}
       <form ref={formRef} action={action} className="mt-6 space-y-4">
         <input type="hidden" name="next" value={next ?? ""} />
@@ -97,7 +97,7 @@ export function MfaForm({ email, demoCode }: { email: string; demoCode?: string 
       <div className="size-11 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center mb-4">
         <ShieldCheck className="size-5" />
       </div>
-      <h2 className="text-[24px] font-semibold tracking-[-0.015em]">Two-factor authentication</h2>
+      <h2 className="text-[28px] leading-tight font-normal tracking-[-0.03em]">Two-factor authentication</h2>
       <p className="text-muted mt-1.5 text-[14px]">Enter the 6-digit code from your authenticator app for {email}.</p>
       <form action={action} className="mt-6 space-y-4">
         <Field label="Authentication code" htmlFor="code">
@@ -123,7 +123,7 @@ export function ForgotForm({ demo }: { demo: boolean }) {
   if (state?.sent)
     return (
       <div>
-        <h2 className="text-[24px] font-semibold">Check your email</h2>
+        <h2 className="text-[28px] leading-tight font-normal tracking-[-0.03em]">Check your email</h2>
         <p className="text-muted mt-2 text-[14px]">If an account exists for that address, we&apos;ve sent a link to reset your password. It expires in 1 hour.</p>
         {demo && <p className="text-[12px] text-muted mt-4">Demo: emails are delivered to the development outbox (Operations → Admin).</p>}
         <Link href="/login" className="block mt-6 text-[13px] text-brand-700 hover:underline">← Back to sign in</Link>
@@ -131,7 +131,7 @@ export function ForgotForm({ demo }: { demo: boolean }) {
     );
   return (
     <div>
-      <h2 className="text-[24px] font-semibold tracking-[-0.015em]">Reset your password</h2>
+      <h2 className="text-[28px] leading-tight font-normal tracking-[-0.03em]">Reset your password</h2>
       <p className="text-muted mt-1.5 text-[14px]">We&apos;ll email you a secure link.</p>
       <form action={action} className="mt-6 space-y-4">
         <Field label="Email" htmlFor="email">
@@ -149,7 +149,7 @@ export function ResetForm({ token, invite }: { token: string; invite?: boolean }
   const [state, action, pending] = useActionState(resetPassword, {});
   return (
     <div>
-      <h2 className="text-[24px] font-semibold tracking-[-0.015em]">{invite ? "Set up your account" : "Choose a new password"}</h2>
+      <h2 className="text-[28px] leading-tight font-normal tracking-[-0.03em]">{invite ? "Set up your account" : "Choose a new password"}</h2>
       <p className="text-muted mt-1.5 text-[14px]">At least 12 characters, with upper- and lower-case letters and a number.</p>
       <form action={action} className="mt-6 space-y-4">
         <input type="hidden" name="token" value={token} />

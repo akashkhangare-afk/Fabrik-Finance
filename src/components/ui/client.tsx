@@ -31,15 +31,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => {
           const Icon = t.tone === "success" ? CheckCircle2 : t.tone === "error" ? CircleAlert : Info;
           return (
-            <div key={t.id} className="animate-toast flex items-start gap-3 rounded-2xl bg-ink/95 backdrop-blur text-white pl-3.5 pr-3 py-3 shadow-[var(--shadow-pop)] ring-1 ring-white/10" role={t.tone === "error" ? "alert" : "status"}>
-              <span className={cn("mt-px size-6 rounded-full flex items-center justify-center shrink-0", t.tone === "success" ? "bg-[#7fd3a4]/15" : t.tone === "error" ? "bg-[#f3a3a3]/15" : "bg-[#a9c7f1]/15")}>
-                <Icon className={cn("size-4", t.tone === "success" ? "text-[#7fd3a4]" : t.tone === "error" ? "text-[#f3a3a3]" : "text-[#a9c7f1]")} />
+            <div key={t.id} className="animate-toast flex items-start gap-3 rounded-[20px] bg-brand-800/95 backdrop-blur text-white pl-3.5 pr-3 py-3 shadow-[var(--shadow-pop)] ring-1 ring-white/10" role={t.tone === "error" ? "alert" : "status"}>
+              <span className={cn("mt-px size-6 rounded-full flex items-center justify-center shrink-0", t.tone === "success" ? "bg-ok-100/15" : t.tone === "error" ? "bg-accent-500/20" : "bg-ai-100/15")}>
+                <Icon className={cn("size-4", t.tone === "success" ? "text-ok-100" : t.tone === "error" ? "text-accent-100" : "text-ai-100")} />
               </span>
               <div className="min-w-0 flex-1 pt-0.5">
                 <div className="text-[13.5px] font-medium leading-5">{t.title}</div>
                 {t.body && <div className="text-[12.5px] text-white/70 mt-0.5">{t.body}</div>}
               </div>
-              <button className="size-6 rounded-md text-white/50 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors" onClick={() => setToasts((xs) => xs.filter((x) => x.id !== t.id))} aria-label="Dismiss">
+              <button className="size-6 rounded-full text-white/50 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors" onClick={() => setToasts((xs) => xs.filter((x) => x.id !== t.id))} aria-label="Dismiss">
                 <X className="size-4" />
               </button>
             </div>
@@ -118,19 +118,19 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
   if (!shown) return null;
   return createPortal(
     <div className="fixed inset-0 z-[70]">
-      <div className="animate-backdrop absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={onClose} />
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={id} className="animate-drawer absolute right-0 top-0 h-full bg-surface shadow-[var(--shadow-pop)] flex flex-col w-full sm:rounded-l-2xl sm:border-l sm:border-line overflow-hidden" style={{ maxWidth: width }}>
-        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-line bg-gradient-to-b from-surface-2 to-surface">
+      <div className="animate-backdrop absolute inset-0 bg-brand-900/30 backdrop-blur-[3px]" onClick={onClose} />
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={id} className="animate-drawer absolute right-0 top-0 sm:top-2 sm:bottom-2 sm:right-2 h-full sm:h-auto bg-surface shadow-[var(--shadow-pop)] flex flex-col w-full sm:rounded-[28px] overflow-hidden" style={{ maxWidth: width }}>
+        <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-line">
           <div className="min-w-0">
-            <h2 id={id} className="text-[17px] font-semibold text-ink tracking-[-0.01em]">{title}</h2>
+            <h2 id={id} className="text-[20px] font-normal text-ink tracking-[-0.02em]">{title}</h2>
             {subtitle && <div className="text-[13px] text-muted mt-0.5">{subtitle}</div>}
           </div>
-          <button onClick={onClose} className="size-8 -mr-1.5 rounded-lg text-muted hover:bg-sunken hover:text-ink flex items-center justify-center transition-colors" aria-label="Close">
+          <button onClick={onClose} className="size-9 -mr-1.5 rounded-full bg-sunken text-ink-2 hover:bg-brand-700 hover:text-white flex items-center justify-center transition-colors" aria-label="Close">
             <X className="size-4.5" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
-        {footer && <div className="border-t border-line px-6 py-3.5 bg-surface-2/80 backdrop-blur flex items-center justify-end gap-2 flex-wrap">{footer}</div>}
+        {footer && <div className="border-t border-line px-6 py-4 bg-surface flex items-center justify-end gap-2 flex-wrap">{footer}</div>}
       </div>
     </div>,
     document.body,
@@ -145,14 +145,14 @@ export function Modal({ open, onClose, title, description, children, footer, wid
   if (!shown) return null;
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <div className="animate-backdrop absolute inset-0 bg-ink/35 backdrop-blur-[2px]" onClick={onClose} />
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={id} className="animate-pop relative bg-surface rounded-2xl shadow-[var(--shadow-pop)] ring-1 ring-ink/5 w-full overflow-hidden" style={{ maxWidth: width, transformOrigin: "center" }}>
-        <div className="px-6 pt-6">
-          <h2 id={id} className="text-[17px] font-semibold text-ink tracking-[-0.01em]">{title}</h2>
+      <div className="animate-backdrop absolute inset-0 bg-brand-900/35 backdrop-blur-[3px]" onClick={onClose} />
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={id} className="animate-pop relative bg-surface rounded-[28px] shadow-[var(--shadow-pop)] w-full overflow-hidden" style={{ maxWidth: width, transformOrigin: "center" }}>
+        <div className="px-7 pt-7">
+          <h2 id={id} className="text-[20px] font-normal text-ink tracking-[-0.02em]">{title}</h2>
           {description && <div className="text-[13.5px] text-muted mt-1.5 leading-relaxed">{description}</div>}
         </div>
-        {children && <div className="px-6 pt-4">{children}</div>}
-        <div className="px-6 py-4 mt-5 border-t border-line bg-surface-2 flex items-center justify-end gap-2">{footer ?? <Button onClick={onClose}>Close</Button>}</div>
+        {children && <div className="px-7 pt-4">{children}</div>}
+        <div className="px-7 py-5 mt-4 flex items-center justify-end gap-2">{footer ?? <Button onClick={onClose}>Close</Button>}</div>
       </div>
     </div>,
     document.body,
@@ -184,14 +184,14 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
 
 export function Segmented<T extends string>({ value, onChange, options, size = "md", label }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; size?: "sm" | "md"; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex items-center rounded-[var(--radius-control)] bg-sunken p-1 gap-0.5">
+    <div role="radiogroup" aria-label={label} className="inline-flex items-center rounded-full bg-surface p-1 gap-0.5 ring-1 ring-inset ring-line">
       {options.map((o) => (
         <button
           key={o.value}
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cn("rounded-md font-medium transition-[background-color,color,box-shadow] duration-150", size === "sm" ? "h-7 px-2.5 text-[12.5px]" : "h-7 px-3 text-[13px]", value === o.value ? "bg-surface text-ink shadow-[0_1px_2px_rgba(22,26,23,.08),0_0_0_1px_rgba(22,26,23,.04)]" : "text-muted hover:text-ink")}
+          className={cn("rounded-full font-medium transition-[background-color,color,box-shadow] duration-150", size === "sm" ? "h-7 px-3 text-[12.5px]" : "h-8 px-3.5 text-[13px]", value === o.value ? "bg-brand-700 text-white shadow-[0_2px_6px_-1px_rgba(28,34,48,.3)]" : "text-muted hover:text-ink hover:bg-sunken")}
         >
           {o.label}
         </button>
@@ -220,7 +220,7 @@ export function Popover({ trigger, children, align = "right", width = 300, label
     <div ref={ref} className="relative">
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
       {open && (
-        <div role="menu" aria-label={label} className={cn("animate-pop absolute top-full mt-2 z-[60] rounded-2xl border border-line bg-surface shadow-[var(--shadow-pop)] overflow-hidden", align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left")} style={{ width: `min(${width}px, calc(100vw - 24px))` }}>
+        <div role="menu" aria-label={label} className={cn("animate-pop absolute top-full mt-2 z-[60] rounded-[20px] border border-line bg-surface shadow-[var(--shadow-pop)] overflow-hidden", align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left")} style={{ width: `min(${width}px, calc(100vw - 24px))` }}>
           {children(() => setOpen(false))}
         </div>
       )}

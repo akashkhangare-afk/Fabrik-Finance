@@ -2,71 +2,87 @@
 
 /*
  * Fabrik Finance design tokens.
- * Neutral warm surfaces, high-contrast ink, one restrained forest-green brand accent.
- * Semantic roles: AI suggestion (violet-tinted), verified (green), pending review (amber),
- * action needed (rust), critical (red). Chart series validated with the dataviz validator:
- * #1f7a55 / #e8913a / #2a78d6 (all-pairs CVD ΔE ≥ 15.7; amber needs labels/table — provided).
+ * Cool grey canvas with white, softly rounded cards; deep navy ink for text, primary actions and
+ * selected states; one warm orange-red accent for what needs attention; a soft blue for AI.
+ * Semantic roles: AI suggestion (blue), verified (green), pending review (amber),
+ * action needed (orange-red accent), critical (red). Chart series: navy #1e293b /
+ * orange-red #e2472b / blue #5b8bd0 — they differ in lightness as well as hue, and every chart
+ * also labels its series, so colour is never the only cue.
  */
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
 
-  --color-canvas: #f6f6f3;
+  --color-canvas: #e8eaee;
   --color-surface: #ffffff;
-  --color-surface-2: #fafaf8;
-  --color-sunken: #f1f1ed;
-  --color-line: #e5e4de;
-  --color-line-strong: #d4d3cb;
+  --color-surface-2: #f5f6f8;
+  --color-sunken: #eef0f3;
+  --color-line: #e3e6eb;
+  --color-line-strong: #d0d5dd;
 
-  --color-ink: #161a17;
-  --color-ink-2: #3d433f;
-  --color-muted: #646b66;
-  --color-subtle: #8b918c;
+  --color-ink: #1c2230;
+  --color-ink-2: #3a4252;
+  --color-muted: #646c7a;
+  --color-subtle: #8e95a2;
 
-  --color-brand-50: #eef6f1;
-  --color-brand-100: #dcede3;
-  --color-brand-200: #b7d9c5;
-  --color-brand-300: #86bc9e;
-  --color-brand-500: #2f7f5a;
-  --color-brand-600: #1f6b4a;
-  --color-brand-700: #17573c;
-  --color-brand-800: #11432e;
-  --color-brand-900: #0b2e20;
+  /* Navy: primary actions, selected states, links. */
+  --color-brand-50: #eef1f6;
+  --color-brand-100: #e1e6ee;
+  --color-brand-200: #c8d0dd;
+  --color-brand-300: #a4b0c3;
+  --color-brand-500: #3d4b63;
+  --color-brand-600: #263043;
+  --color-brand-700: #1e2637;
+  --color-brand-800: #161c29;
+  --color-brand-900: #10141e;
 
-  --color-ai-50: #f3f1fd;
-  --color-ai-100: #e7e3fb;
-  --color-ai-500: #6650d1;
-  --color-ai-600: #5641bd;
-  --color-ai-700: #46339e;
+  /* Orange-red accent: the mark, counts and anything waiting on the user. */
+  --color-accent-50: #fdeeea;
+  --color-accent-100: #fad8cf;
+  --color-accent-500: #ea5b3f;
+  --color-accent-600: #e2472b;
+  --color-accent-700: #c23a20;
 
-  --color-ok-50: #ecf7ef;
-  --color-ok-600: #1d7a3e;
-  --color-warn-50: #fdf5e4;
-  --color-warn-500: #c98a12;
-  --color-warn-700: #8a5c06;
-  --color-risk-50: #fdf0ea;
-  --color-risk-600: #b4501f;
-  --color-crit-50: #fcecec;
-  --color-crit-600: #b42828;
-  --color-info-50: #edf3fc;
-  --color-info-600: #2463b8;
+  --color-ai-50: #edf3fc;
+  --color-ai-100: #d9e5f7;
+  --color-ai-500: #6f9ad8;
+  --color-ai-600: #3f6db3;
+  --color-ai-700: #345c99;
 
-  --color-series-1: #1f7a55;
-  --color-series-2: #e8913a;
-  --color-series-3: #2a78d6;
+  --color-ok-50: #e9f5ee;
+  --color-ok-100: #c7e6d3;
+  --color-ok-600: #2b7a4d;
+  --color-warn-50: #fdf4e2;
+  --color-warn-100: #f3e0b4;
+  --color-warn-500: #d39418;
+  --color-warn-700: #85590a;
+  --color-risk-50: #fdeeea;
+  --color-risk-100: #f8d2c8;
+  --color-risk-600: #c63d22;
+  --color-crit-50: #fcebeb;
+  --color-crit-100: #f3c9c9;
+  --color-crit-600: #bb2d2d;
+  --color-crit-700: #9b2222;
+  --color-info-50: #eef2f8;
+  --color-info-100: #d5deeb;
+  --color-info-600: #45597a;
 
-  /* Shape: cards and overlays are soft, controls a step tighter. */
-  --radius-card: 16px;
-  --radius-control: 10px;
+  --color-series-1: #1e293b;
+  --color-series-2: #e2472b;
+  --color-series-3: #5b8bd0;
 
-  /* Elevation: one light source from above; each level adds a wider, softer shadow. */
-  --shadow-xs: 0 1px 2px rgba(22, 26, 23, 0.05);
-  --shadow-card: 0 1px 2px rgba(22, 26, 23, 0.04), 0 1px 3px rgba(22, 26, 23, 0.03);
-  --shadow-raised: 0 1px 2px rgba(22, 26, 23, 0.04), 0 6px 16px -4px rgba(22, 26, 23, 0.08);
-  --shadow-pop: 0 16px 40px -12px rgba(22, 26, 23, 0.22), 0 4px 10px -2px rgba(22, 26, 23, 0.06);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  --shadow-focus: 0 0 0 3px rgba(47, 127, 90, 0.18);
+  /* Shape: generous cards, pill-shaped controls. */
+  --radius-card: 24px;
+  --radius-control: 9999px;
+
+  /* Elevation: soft, cool, from above. Cards sit almost flat on the canvas. */
+  --shadow-xs: 0 1px 2px rgba(28, 34, 48, 0.05);
+  --shadow-card: 0 1px 2px rgba(28, 34, 48, 0.03), 0 2px 8px -2px rgba(28, 34, 48, 0.04);
+  --shadow-raised: 0 2px 4px rgba(28, 34, 48, 0.04), 0 12px 28px -8px rgba(28, 34, 48, 0.12);
+  --shadow-pop: 0 24px 48px -16px rgba(28, 34, 48, 0.28), 0 6px 14px -4px rgba(28, 34, 48, 0.08);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-focus: 0 0 0 4px rgba(30, 38, 55, 0.12);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -146,7 +162,7 @@ body {
   to { background-position: -100% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--color-sunken) 25%, #e9e9e3 50%, var(--color-sunken) 75%);
+  background: linear-gradient(90deg, var(--color-sunken) 25%, #e4e7ec 50%, var(--color-sunken) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
@@ -170,7 +186,7 @@ body {
 }
 /* Dropdown chevron for <Select> (appearance-none removes the native one). */
 .select-chevron {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23646b66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23646c7a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-repeat: no-repeat;
   background-position: right 10px center;
 }

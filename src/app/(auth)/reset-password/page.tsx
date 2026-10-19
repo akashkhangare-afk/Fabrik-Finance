@@ -8,7 +8,7 @@ export default async function ResetPage({ searchParams }: { searchParams: Promis
   if (!sp.token)
     return (
       <div>
-        <h2 className="text-[24px] font-semibold">Link missing</h2>
+        <h2 className="text-[28px] leading-tight font-normal tracking-[-0.03em]">Link missing</h2>
         <p className="text-muted mt-2">Open the link from your email, or <Link className="text-brand-700 underline" href="/forgot-password">request a new one</Link>.</p>
       </div>
     );

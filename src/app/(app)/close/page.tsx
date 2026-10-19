@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Circle, CircleDot, FileBarChart } from "lucide-react";
 import { requireCtx, hasPerm } from "@/server/auth/session";
 import { closeStatus, ensureClosePeriods, periodLabel, periodRange } from "@/server/services/close";
-import { Badge, Card, CardHeader, LinkButton, PageHeader, StatusPill, PageTabs, ProgressBar, buttonClass } from "@/components/ui/primitives";
+import { Badge, Card, CardHeader, LinkButton, PageHeader, StatusPill, PageTabs, buttonClass, TickBar } from "@/components/ui/primitives";
 import { CloseActions } from "@/components/close/close-actions";
 import { prettyDateTime, today } from "@/lib/dates";
 import { cn } from "@/lib/cn";
@@ -29,13 +29,13 @@ export default async function ClosePage({ searchParams }: { searchParams: Promis
             <div className="px-5 py-5 flex flex-col sm:flex-row sm:items-center gap-5">
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-[20px] font-semibold">{periodLabel(cp.period)}</h2>
+                  <h2 className="text-[24px] font-normal tracking-[-0.025em]">{periodLabel(cp.period)}</h2>
                   <StatusPill status={cp.status} />
                 </div>
                 <div className="text-[13px] text-muted mt-1">
                   {cp.status === "closed" ? `Closed ${prettyDateTime(cp.closedAt!)}` : `${s.done} of ${s.total} steps complete`}
                 </div>
-                <ProgressBar value={s.done / s.total} tone={cp.status === "closed" ? "ok" : "brand"} label="Close progress" className="mt-3 max-w-md" />
+                <TickBar value={s.done / s.total} tone={cp.status === "closed" ? "ok" : "brand"} label="Close progress" className="mt-3 max-w-md h-8" />
               </div>
               <CloseActions period={cp.period} status={cp.status} bookkeeperDone={Boolean(cp.manual.bookkeeper_review?.done)} ready={s.readyForApproval} blocking={s.blocking.map((b) => b.label)} canWork={hasPerm(ctx, "close:work")} canApprove={hasPerm(ctx, "close:approve")} />
             </div>

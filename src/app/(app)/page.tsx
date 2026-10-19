@@ -6,7 +6,7 @@ import { currentClose, periodLabel } from "@/server/services/close";
 import { inboxSummary } from "@/server/services/workflow";
 import { fundingSummary } from "@/server/services/funding";
 import { showExtras } from "@/server/config";
-import { Card, CardHeader, KpiCard, LinkButton, ProgressBar, AiBadge } from "@/components/ui/primitives";
+import { Card, CardHeader, KpiCard, LinkButton, AiBadge, TickBar } from "@/components/ui/primitives";
 import { RevenueExpenseChart, type MonthPoint } from "@/components/charts";
 import { AskAccountantButton } from "@/components/home/ask-accountant";
 import { monthLabel, prettyDate } from "@/lib/dates";
@@ -41,24 +41,23 @@ export default async function HomePage() {
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-[28px] leading-9 font-semibold tracking-[-0.02em]">Home</h1>
+        <h1 className="text-[28px] sm:text-[34px] leading-tight font-normal tracking-[-0.03em]">Home</h1>
         {showExtras() && !ctx.isStaff && <AskAccountantButton />}
       </header>
 
       {inbox.total > 0 && (
-        <Card className="relative overflow-hidden border-[#f1c9b4]/70">
-          <div className="absolute inset-y-0 left-0 w-1 bg-risk-600" aria-hidden />
-          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-risk-50 blur-2xl" aria-hidden />
-          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 pl-6 pr-5 py-4">
-            <span className="hidden sm:flex size-11 rounded-xl bg-risk-50 text-risk-600 ring-1 ring-inset ring-[#f1c9b4] items-center justify-center shrink-0">
+        <Card className="relative overflow-hidden border-white">
+          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-accent-50 blur-2xl" aria-hidden />
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-5">
+            <span className="hidden sm:flex size-12 rounded-2xl bg-accent-600 text-white shadow-[0_6px_16px_-6px_rgba(226,71,43,.6)] items-center justify-center shrink-0">
               <Inbox className="size-5" />
             </span>
             <div className="flex-1 min-w-0">
               <div className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-risk-600">Fabrik needs your help</div>
-              <div className="text-[16px] font-semibold mt-0.5 tracking-[-0.01em]">{plural(inbox.total, "item")} need your input</div>
+              <div className="text-[18px] font-medium mt-0.5 tracking-[-0.015em]">{plural(inbox.total, "item")} need your input</div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {attention.map((a) => (
-                  <span key={a.one} className="inline-flex items-center h-6 px-2 rounded-md bg-surface-2 ring-1 ring-inset ring-line text-[12.5px] text-ink-2"><span className="font-semibold tabular mr-1">{a.n}</span>{a.n === 1 ? a.one : a.many}</span>
+                  <span key={a.one} className="inline-flex items-center h-7 px-3 rounded-full bg-sunken text-[12.5px] text-ink-2"><span className="font-semibold tabular mr-1">{a.n}</span>{a.n === 1 ? a.one : a.many}</span>
                 ))}
               </div>
             </div>
@@ -116,14 +115,14 @@ export default async function HomePage() {
         <div className="px-5 pb-5 grid gap-5 lg:grid-cols-[200px_minmax(0,1fr)] lg:items-center">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[34px] leading-none font-semibold tracking-[-0.03em] tabular">{close.pct}%</span>
+              <span className="text-[44px] leading-none font-normal tracking-[-0.04em] tabular">{close.pct}%</span>
               <span className="text-[13px] text-muted">complete</span>
             </div>
-            <ProgressBar value={close.pct / 100} label="Close progress" className="mt-3" />
+            <TickBar value={close.pct / 100} label="Close progress" className="mt-4" />
           </div>
           <ul className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2">
             {close.tasks.map((t) => (
-              <li key={t.key} className={cn("flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] ring-1 ring-inset", t.state === "done" ? "bg-surface-2 ring-line text-ink-2" : t.state === "in_progress" ? "bg-warn-50/60 ring-[#efd9a6] text-ink font-medium" : "bg-surface ring-line text-ink font-medium")}>
+              <li key={t.key} className={cn("flex items-center gap-2.5 rounded-full px-4 py-2.5 text-[13px]", t.state === "done" ? "bg-sunken text-ink-2" : t.state === "in_progress" ? "bg-warn-50 ring-1 ring-inset ring-warn-100 text-ink font-medium" : "bg-surface ring-1 ring-inset ring-line-strong text-ink font-medium")}>
                 {t.state === "done" ? <CheckCircle2 className="size-4 text-ok-600 shrink-0" /> : t.state === "in_progress" ? <CircleDot className="size-4 text-warn-500 shrink-0" /> : <Circle className="size-4 text-line-strong shrink-0" />}
                 <span className="leading-snug">{t.label}</span>
               </li>

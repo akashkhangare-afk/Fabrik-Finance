@@ -258,7 +258,7 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, demo, expenseAccounts }:
             <section>
               <h3 className="text-[13px] font-semibold mb-2">Transaction match</h3>
               {doc.matched ? (
-                <div className="rounded-xl border border-[#b9dfc4] bg-ok-50 px-4 py-3">
+                <div className="rounded-xl border border-ok-100 bg-ok-50 px-4 py-3">
                   <div className="flex items-center gap-2 text-[13px] font-semibold text-ok-600"><Check className="size-4" /> Matched</div>
                   <div className="mt-1.5 flex items-center justify-between text-[13px]">
                     <span>{doc.matched.vendor} · {prettyDate(doc.matched.date, { year: true })}</span>

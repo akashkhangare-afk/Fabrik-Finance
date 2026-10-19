@@ -96,7 +96,7 @@ export default async function TaxPage() {
         </div>
         <div className="bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] px-4 py-3.5">
           <div className="text-[13px] text-muted font-medium flex items-center gap-1.5"><FileStack className="size-3.5" /> Documents outstanding</div>
-          <div className="mt-1.5 text-[24px] leading-8 font-semibold text-ink tabular">{outstanding}</div>
+          <div className="mt-1.5 text-[30px] leading-9 font-normal tracking-[-0.03em] text-ink tabular">{outstanding}</div>
           <div className="text-[12px] text-muted">of {plural(yearRequests.length, "request")} for {TAX_YEAR}</div>
         </div>
         <div className="bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] px-4 py-3.5">

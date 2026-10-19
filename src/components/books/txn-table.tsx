@@ -212,7 +212,7 @@ function TransactionDrawer({ id, onClose, canReview, canAskClient, staff }: { id
           )}
 
           {(t.risk?.reasons.length || ai?.anomaly || ai?.possibleDuplicateOf) && (
-            <section className="rounded-xl border border-[#efd9a6] bg-warn-50 p-4">
+            <section className="rounded-xl border border-warn-100 bg-warn-50 p-4">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-warn-700"><AlertTriangle className="size-4" /> Needs a person — risk rules override confidence</div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {t.risk?.reasons.map((r) => <Badge key={r.ruleKey} tone="warn">{r.label}</Badge>)}

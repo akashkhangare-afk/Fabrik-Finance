@@ -7,22 +7,23 @@ import { cn } from "@/lib/cn";
 import { moneyCompact } from "@/lib/format";
 import { Segmented } from "@/components/ui/client";
 
-// Validated with the dataviz palette validator (all-pairs, light surface).
-export const SERIES = { s1: "#1f7a55", s2: "#e8913a", s3: "#2a78d6", muted: "#8b918c", grid: "#ecebe6", axis: "#8b918c" };
+// Navy / orange-red / blue differ in lightness as well as hue; every chart also names its series.
+export const SERIES = { s1: "#1e293b", s2: "#e2472b", s3: "#5b8bd0", muted: "#9aa1ad", grid: "#e9ecf0", axis: "#8e95a2" };
+const ZERO = "#d0d5dd";
 
 const axisTick = { fill: SERIES.axis, fontSize: 11.5 };
 const fmtAxis = (v: number) => moneyCompact(v);
 
 function TooltipShell({ title, rows }: { title: string; rows: { label: string; value: string; color?: string; dashed?: boolean }[] }) {
   return (
-    <div className="rounded-xl border border-line bg-surface px-3 py-2.5 shadow-[var(--shadow-pop)] min-w-[180px]">
-      <div className="text-[12px] text-muted mb-1.5">{title}</div>
+    <div className="rounded-2xl bg-brand-800 text-white px-3.5 py-3 shadow-[var(--shadow-pop)] min-w-[180px]">
+      <div className="text-[12px] text-white/60 mb-1.5">{title}</div>
       <div className="space-y-1">
         {rows.map((r) => (
           <div key={r.label} className="flex items-center gap-2.5 text-[12.5px]">
-            {r.color && <span className="w-3 h-0 border-t-2" style={{ borderColor: r.color, borderStyle: r.dashed ? "dashed" : "solid" }} />}
-            <span className="font-semibold tabular text-ink">{r.value}</span>
-            <span className="text-muted">{r.label}</span>
+            {r.color && <span className="w-3 h-0 border-t-2" style={{ borderColor: r.color === SERIES.s1 ? "#ffffff" : r.color, borderStyle: r.dashed ? "dashed" : "solid" }} />}
+            <span className="font-semibold tabular">{r.value}</span>
+            <span className="text-white/60">{r.label}</span>
           </div>
         ))}
       </div>
@@ -69,21 +70,21 @@ export function RevenueExpenseChart({ series, ranges, defaultRange = "12m", heig
       </div>
       <div style={{ height }} role="img" aria-label={`Revenue and expenses by month, ${ranges.find((r) => r.value === range)?.label}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 6, right: 4, bottom: 0, left: 0 }} barGap={2} barCategoryGap="28%">
-            <CartesianGrid vertical={false} stroke={SERIES.grid} />
+          <ComposedChart data={data} margin={{ top: 6, right: 4, bottom: 0, left: 0 }} barGap={4} barCategoryGap="30%">
+            <CartesianGrid vertical={false} stroke={SERIES.grid} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: SERIES.grid }} tick={axisTick} />
             <YAxis tickFormatter={fmtAxis} tickLine={false} axisLine={false} tick={axisTick} width={56} />
-            <ReferenceLine y={0} stroke="#d4d3cb" />
+            <ReferenceLine y={0} stroke={ZERO} />
             <Tooltip
-              cursor={{ fill: "rgba(22,26,23,0.04)" }}
+              cursor={{ fill: "rgba(28,34,48,0.05)", radius: 12 } as object}
               content={(p: TooltipContentProps<ValueType, NameType>) => {
                 if (!p.active || !p.payload?.length) return null;
                 const d = p.payload[0]!.payload as MonthPoint;
                 return <TooltipShell title={`${d.label}${d.partial ? " (month to date)" : ""}`} rows={[{ label: "Revenue", value: moneyCompact(d.revenue), color: SERIES.s1 }, { label: "Expenses", value: moneyCompact(d.expenses), color: SERIES.s2 }]} />;
               }}
             />
-            <Bar isAnimationActive={false} dataKey="revenue" fill={SERIES.s1} radius={[4, 4, 0, 0]} maxBarSize={22} />
-            <Bar isAnimationActive={false} dataKey="expenses" fill={SERIES.s2} radius={[4, 4, 0, 0]} maxBarSize={22} />
+            <Bar isAnimationActive={false} dataKey="revenue" fill={SERIES.s1} radius={[8, 8, 8, 8]} maxBarSize={14} />
+            <Bar isAnimationActive={false} dataKey="expenses" fill={SERIES.s2} radius={[8, 8, 8, 8]} maxBarSize={14} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -117,11 +118,11 @@ export function ForecastChart({ weeks, buffer, startingCash, height = 280, compa
           <ComposedChart data={data} margin={{ top: 6, right: 4, bottom: 0, left: 0 }} stackOffset="sign" barCategoryGap="30%">
             <defs>
               <pattern id="hatch-in" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="5" height="5" fill="#e3f0e9" />
+                <rect width="5" height="5" fill="#e6e9ef" />
                 <line x1="0" y1="0" x2="0" y2="5" stroke={SERIES.s1} strokeWidth="1.6" />
               </pattern>
               <pattern id="hatch-out" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">
-                <rect width="5" height="5" fill="#fbeedf" />
+                <rect width="5" height="5" fill="#fdeeea" />
                 <line x1="0" y1="0" x2="0" y2="5" stroke={SERIES.s2} strokeWidth="1.6" />
               </pattern>
               <linearGradient id="bal" x1="0" y1="0" x2="0" y2="1">
@@ -129,13 +130,13 @@ export function ForecastChart({ weeks, buffer, startingCash, height = 280, compa
                 <stop offset="100%" stopColor={SERIES.s3} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke={SERIES.grid} />
+            <CartesianGrid vertical={false} stroke={SERIES.grid} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: SERIES.grid }} tick={axisTick} interval={compact ? 2 : 0} />
             <YAxis tickFormatter={fmtAxis} tickLine={false} axisLine={false} tick={axisTick} width={56} />
-            <ReferenceLine y={0} stroke="#d4d3cb" />
-            <ReferenceLine y={buffer} stroke={SERIES.muted} strokeDasharray="5 4" label={compact ? undefined : { value: `Buffer ${moneyCompact(buffer)}`, position: "insideTopLeft", fill: "#646b66", fontSize: 11 }} />
+            <ReferenceLine y={0} stroke={ZERO} />
+            <ReferenceLine y={buffer} stroke={SERIES.muted} strokeDasharray="5 4" label={compact ? undefined : { value: `Buffer ${moneyCompact(buffer)}`, position: "insideTopLeft", fill: "#646c7a", fontSize: 11 }} />
             <Tooltip
-              cursor={{ stroke: "#d4d3cb", strokeWidth: 1 }}
+              cursor={{ stroke: ZERO, strokeWidth: 1 }}
               content={(p: TooltipContentProps<ValueType, NameType>) => {
                 if (!p.active || !p.payload?.length) return null;
                 const d = p.payload[0]!.payload as WeekPoint;
@@ -181,13 +182,13 @@ export function ScenarioChart({ data, buffer, height = 240 }: { data: { label: s
       <div style={{ height }} role="img" aria-label="Projected cash: baseline versus scenario">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke={SERIES.grid} />
+            <CartesianGrid vertical={false} stroke={SERIES.grid} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: SERIES.grid }} tick={axisTick} />
             <YAxis tickFormatter={fmtAxis} tickLine={false} axisLine={false} tick={axisTick} width={56} />
-            <ReferenceLine y={0} stroke="#d4d3cb" />
+            <ReferenceLine y={0} stroke={ZERO} />
             <ReferenceLine y={buffer} stroke={SERIES.muted} strokeDasharray="5 4" />
             <Tooltip
-              cursor={{ stroke: "#d4d3cb" }}
+              cursor={{ stroke: ZERO }}
               content={(p: TooltipContentProps<ValueType, NameType>) => {
                 if (!p.active || !p.payload?.length) return null;
                 const d = p.payload[0]!.payload as { label: string; range: string; baseline: number; scenario: number };
@@ -206,7 +207,7 @@ export function ScenarioChart({ data, buffer, height = 240 }: { data: { label: s
 // ─── AR aging buckets ────────────────────────────────────────────────────────
 
 export function AgingBuckets({ buckets }: { buckets: { label: string; value: number; tone: "ok" | "warn" | "risk" | "crit" }[] }) {
-  const color = { ok: SERIES.s1, warn: "#e9b949", risk: SERIES.s2, crit: "#c2452f" };
+  const color = { ok: SERIES.s3, warn: "#d39418", risk: SERIES.s2, crit: "#9b2222" };
   return (
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -216,7 +217,7 @@ export function AgingBuckets({ buckets }: { buckets: { label: string; value: num
               <span className="size-2.5 rounded-[3px]" style={{ background: color[b.tone] }} />
               {b.label}
             </div>
-            <div className="text-[15px] font-semibold tabular mt-0.5">{moneyCompact(b.value)}</div>
+            <div className="text-[20px] font-normal tracking-[-0.02em] tabular mt-0.5">{moneyCompact(b.value)}</div>
           </div>
         ))}
       </div>

@@ -40,7 +40,7 @@ export default async function RequirementsPage({ searchParams }: { searchParams:
         ].map(([l, n]) => (
           <Card key={l as string} className="px-4 py-3">
             <div className="text-[12.5px] text-muted">{l as string}</div>
-            <div className="text-[22px] font-semibold tabular">{n as number}</div>
+            <div className="text-[26px] font-normal tracking-[-0.03em] tabular">{n as number}</div>
           </Card>
         ))}
       </section>
