@@ -12,7 +12,7 @@ import { prettyDate } from "@/lib/dates";
 const money = (c: number) => fmtMoney(c, { decimals: true });
 const prettyDateSafe = (d: string) => prettyDate(d, { year: true });
 import { respondInbox, dismissInboxItem, decideBill, uploadDocuments, uploadSampleInvoice, confirmDocMatch } from "@/app/actions/app";
-import { Badge, Button, Card, ConfidenceBar, Input, Textarea } from "@/components/ui/primitives";
+import { Badge, Button, Card, Input, Textarea } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/client";
 
 export interface InboxView {
@@ -90,7 +90,7 @@ function InboxCard({ item, canUpload, canApproveBills, demo }: { item: InboxView
           <h3 className="text-[15.5px] font-semibold mt-0.5">{item.title}</h3>
           <div className="text-[12px] text-muted mt-0.5 flex items-center gap-1">
             {item.fromAi ? <Bot className="size-3" /> : null}
-            {item.from} · {item.createdAt} UTC
+            {item.from} · {item.createdAt}
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ function InboxCard({ item, canUpload, canApproveBills, demo }: { item: InboxView
             <div className="mt-3 rounded-lg bg-surface-2 border border-line px-3 py-2 text-[13px]">
               <span className="font-medium">{item.response.label ?? "Response"}</span>
               {item.response.comment && <span className="text-ink-2"> — {item.response.comment}</span>}
-              <div className="text-[11.5px] text-muted mt-0.5">{item.response.by} · {item.response.at} UTC</div>
+              <div className="text-[11.5px] text-muted mt-0.5">{item.response.by} · {item.response.at}</div>
             </div>
           )
         ) : item.type === "transaction_clarification" ? (
@@ -127,7 +127,7 @@ function TxnContext({ c }: { c: Extract<NonNullable<InboxView["context"]>, { kin
   return (
     <div className="mt-3 flex items-center gap-4 rounded-xl border border-line bg-surface-2 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <div className="font-mono text-[12.5px] text-ink truncate">{c.description}</div>
+        <div className="text-[13.5px] font-medium text-ink truncate">{c.vendor}</div>
         <div className="text-[12px] text-muted mt-0.5">{prettyDateSafe(c.date)} · {c.account}</div>
       </div>
       <div className="text-[17px] font-semibold tabular">{money(c.amount)}</div>
@@ -151,7 +151,6 @@ function ClarifyForm({ item }: { item: InboxView }) {
               <span className="text-[13.5px] font-medium">{o.label}</span>
               {o.confidence != null && <span className="text-[12px] text-muted tabular">{Math.round(o.confidence * 100)}%</span>}
             </div>
-            {o.confidence != null && <ConfidenceBar value={o.confidence} className="mt-2" />}
           </button>
         ))}
         <button onClick={() => setOther((x) => !x)} className={cn("text-left rounded-xl border border-dashed px-3.5 py-2.5 text-[13.5px] font-medium transition", other ? "border-brand-500 bg-brand-50/40" : "border-line-strong text-ink-2 hover:border-brand-300")}>Something else / add a comment</button>
@@ -164,7 +163,6 @@ function ClarifyForm({ item }: { item: InboxView }) {
           </div>
         </div>
       )}
-      <p className="text-[11.5px] text-subtle mt-3">Your answer goes straight back into processing. Fabrik remembers it for similar transactions.</p>
     </div>
   );
 }
@@ -192,7 +190,6 @@ function BillForm({ item, canApprove }: { item: InboxView; canApprove: boolean }
             <Button variant="ghost" disabled={pending} onClick={() => act(() => decideBill(item.related!.id, "reject", comment || undefined))}>Reject</Button>
             {c?.documentId && <a href={`/api/v1/documents/${c.documentId}/file`} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-brand-700 hover:underline"><FileText className="size-4" /> View invoice</a>}
           </div>
-          <p className="text-[11.5px] text-subtle">Approving doesn&apos;t pay the bill — payment stays in your bank. Approved bills feed your cash forecast.</p>
         </>
       ) : (
         <p className="text-[13px] text-muted">A Business Owner or Client Finance User approves bills.</p>
@@ -218,8 +215,8 @@ function MissingDocForm({ item, canUpload, demo }: { item: InboxView; canUpload:
   return (
     <div className="mt-4 rounded-xl border-2 border-dashed border-line-strong bg-surface-2 px-4 py-5 text-center">
       <Upload className="size-5 mx-auto text-muted" />
-      <div className="text-[13.5px] font-medium mt-2">Upload the document — Fabrik will extract it and match it automatically</div>
-      <div className="text-[12px] text-muted mt-0.5">PDF, PNG or JPEG · up to 15 MB</div>
+      <div className="text-[13.5px] font-medium mt-2">Upload document</div>
+      <div className="text-[12px] text-muted mt-0.5">PDF or image, up to 15 MB</div>
       <input
         ref={fileRef}
         type="file"
@@ -270,7 +267,6 @@ function OverdueForm({ item }: { item: InboxView }) {
 function FundingForm({ item }: { item: InboxView }) {
   const { pending, act } = useAct();
   const [v, setV] = useState("");
-  const programId = item.related?.id;
   return (
     <div className="mt-4 flex flex-wrap items-end gap-2">
       <div className="w-48">
@@ -278,7 +274,6 @@ function FundingForm({ item }: { item: InboxView }) {
         <Input id={`f-${item.id}`} inputMode="decimal" value={v} onChange={(e) => setV(e.target.value)} placeholder="e.g. 2,180" />
       </div>
       <Button variant="primary" disabled={!v.trim() || pending} onClick={() => act(() => respondInbox(item.id, { value: v, label: `${v} base acres` }))}>Save to profile</Button>
-      {programId && <Link href={`/funding/${programId}`} className="text-[13px] text-brand-700 hover:underline ml-2 mb-2">View program</Link>}
     </div>
   );
 }

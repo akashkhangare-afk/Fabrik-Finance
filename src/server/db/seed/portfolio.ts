@@ -118,7 +118,7 @@ export function seedPortfolio(db: DB, rng: Rng, today: ISODate): void {
       state: def.state,
       plan: def.plan,
       status: "active",
-      closeFrequency: def.key === "bluestem" || def.key === "loesshills" ? "quarterly" : "monthly",
+      closeFrequency: "monthly",
       assignedBookkeeperId: def.bookkeeper,
       assignedReviewerId: def.reviewer,
       thresholds: { autoApprove: 0.98, review: 0.85 },

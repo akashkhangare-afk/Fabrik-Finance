@@ -1,43 +1,19 @@
 import "server-only";
-import type { IntegrationProvider, SyncRun } from "@/lib/types";
+import type { SyncRun } from "@/lib/types";
 import { commit, db } from "@/server/db/store";
 import { accountingProvider } from "@/server/integrations/accounting";
-import { qboConfigured } from "@/server/integrations/accounting/qbo-live";
 import { recordAudit } from "./audit";
 import { clearBundle, upsertBundle } from "./notifications";
 import type { Ctx } from "@/server/auth/session";
 import { NotFoundError } from "./transactions";
 
-export interface CatalogEntry {
-  provider: IntegrationProvider;
-  name: string;
-  category: string;
-  description: string;
-  classification: "A" | "C";
-  phase: string;
-  dataUse: string;
-}
-
-/** MVP: QuickBooks Online only (PRD §21). Others are listed as roadmap items, clearly classified. */
-export const CATALOG: CatalogEntry[] = [
-  { provider: "quickbooks_online", name: "QuickBooks Online", category: "Accounting / general ledger", description: "System of record. Imports chart of accounts, transactions, vendors, customers, invoices, bills, journal entries and reports; approved categorizations are written back.", classification: "A", phase: "MVP", dataUse: "Books, reports, forecasting, funding profile" },
-  { provider: "mercury", name: "Mercury", category: "Business banking", description: "Direct bank transactions for faster reconciliation.", classification: "C", phase: "Phase 2 (proposed)", dataUse: "Reconciliation, cash position" },
-  { provider: "plaid", name: "Plaid", category: "Bank connectivity", description: "Long-tail bank and farm-credit connectivity.", classification: "C", phase: "Phase 2 (proposed)", dataUse: "Reconciliation, cash position" },
-  { provider: "ramp", name: "Ramp", category: "Cards & expenses", description: "Card transactions with receipts and memos.", classification: "C", phase: "Phase 2 (proposed)", dataUse: "Categorization, receipts, close" },
-  { provider: "gusto", name: "Gusto", category: "Payroll", description: "Payroll journals, taxes and employee counts.", classification: "C", phase: "Phase 2 (proposed)", dataUse: "Payroll accounting, forecast, tax" },
-  { provider: "stripe", name: "Stripe", category: "Payments & revenue", description: "Payouts, fees and refunds.", classification: "C", phase: "Phase 2 (proposed)", dataUse: "Revenue recognition, reconciliation" },
-  { provider: "xero", name: "Xero", category: "Accounting / general ledger", description: "Alternative ledger. Explicitly out of scope for the Expo MVP.", classification: "C", phase: "Future", dataUse: "Books, reports" },
-];
-
+/** MVP: QuickBooks Online is the only accounting integration (PRD §21). */
 export function integrationOverview(ctx: Ctx) {
   const data = db();
   const conns = data.connections.filter((c) => c.orgId === ctx.org.id);
   const runs = data.syncRuns.filter((r) => r.orgId === ctx.org.id).sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 25);
-  const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
-  const last30 = data.syncRuns.filter((r) => r.orgId === ctx.org.id && r.startedAt.slice(0, 10) >= since);
-  const successRate = last30.length ? last30.filter((r) => r.status === "success").length / last30.length : 1;
   const pendingWriteback = data.transactions.filter((t) => t.orgId === ctx.org.id && t.syncState === "pending_writeback").length;
-  return { catalog: CATALOG, connections: conns, runs, successRate, pendingWriteback, liveConfigured: qboConfigured() };
+  return { connections: conns, runs, pendingWriteback };
 }
 
 /** Runs a sync with an idempotency key; retryable failures are retried with exponential backoff. */

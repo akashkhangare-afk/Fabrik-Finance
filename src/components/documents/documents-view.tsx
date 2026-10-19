@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate } from "@/lib/dates";
 import { billFromDocument, confirmDocMatch, correctDocFields, rejectDocMatch, uploadDocuments, uploadSampleInvoice } from "@/app/actions/app";
-import { AiBadge, Badge, Button, Card, ConfidenceBar, EmptyState, Field, Input, Notice, Select, StatusPill } from "@/components/ui/primitives";
+import { Badge, Button, Card, EmptyState, Field, Input, Notice, Select, StatusPill } from "@/components/ui/primitives";
 import { Drawer, useToast } from "@/components/ui/client";
 import { useQueryState } from "@/components/books/filters";
 
@@ -33,9 +33,9 @@ export interface DocRow {
 }
 
 const KIND_LABEL: Record<string, string> = { invoice: "Invoice", receipt: "Receipt", bank_statement: "Bank statement", credit_card_statement: "Card statement", entity_document: "Entity document", farm_record: "Farm record", tax_document: "Tax document", other: "Other" };
-const GROUPS = [["", "All", "all"], ["invoices", "Invoices", "invoices"], ["receipts", "Receipts", "receipts"], ["statements", "Statements", "statements"], ["records", "Entity & farm", "records"], ["tax", "Tax", "tax"]] as const;
+const GROUPS = [["", "All", "all"], ["invoices", "Invoices", "invoices"], ["receipts", "Receipts", "receipts"], ["statements", "Statements", "statements"], ["records", "Entity & farm", "records"]] as const;
 
-export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMatch, demo, expenseAccounts }: { rows: DocRow[]; counts: Record<string, number>; kind?: string; q?: string; openId?: string; canUpload: boolean; canMatch: boolean; demo: boolean; expenseAccounts: { id: string; name: string }[] }) {
+export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMatch, demo, extras, expenseAccounts }: { rows: DocRow[]; counts: Record<string, number>; kind?: string; q?: string; openId?: string; canUpload: boolean; canMatch: boolean; demo: boolean; extras: boolean; expenseAccounts: { id: string; name: string }[] }) {
   const { set } = useQueryState();
   const [open, setOpen] = useState(openId);
   const [search, setSearch] = useState(q ?? "");
@@ -51,7 +51,7 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
       {canUpload && <UploadZone demo={demo} onUploaded={(id) => setOpen(id)} />}
       <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between">
         <div className="flex gap-1 overflow-x-auto" role="tablist" aria-label="Document type">
-          {GROUPS.map(([v, label, key]) => (
+          {GROUPS.filter(([v]) => extras || v !== "records").map(([v, label, key]) => (
             <button key={v} role="tab" aria-selected={(kind ?? "") === v} onClick={() => set({ kind: v || undefined })} className={cn("h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5", (kind ?? "") === v ? "bg-ink text-white" : "text-ink-2 hover:bg-sunken")}>
               {label} <span className={cn("text-[11.5px] tabular", (kind ?? "") === v ? "text-white/70" : "text-muted")}>{counts[key] ?? 0}</span>
             </button>
@@ -110,7 +110,7 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
           </div>
         )}
       </Card>
-      <DocDrawer doc={doc} onClose={() => { setOpen(undefined); if (openId) set({ doc: undefined }); }} canMatch={canMatch} canUpload={canUpload} expenseAccounts={expenseAccounts} />
+      <DocDrawer doc={doc} onClose={() => { setOpen(undefined); if (openId) set({ doc: undefined }); }} canMatch={canMatch} canUpload={canUpload} demo={demo} expenseAccounts={expenseAccounts} />
     </div>
   );
 }
@@ -145,7 +145,7 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
       </div>
       <div className="flex-1 text-center md:text-left">
         <div className="text-[15px] font-semibold">{pending ? "FabrikIDP is reading your document…" : "Drag & drop documents, or choose files"}</div>
-        <div className="text-[13px] text-muted mt-0.5">Invoices, receipts, bank and credit-card statements · PDF, PNG, JPEG, WebP · up to 15 MB each, 10 at a time</div>
+        <div className="text-[13px] text-muted mt-0.5">PDF or image, up to 15 MB</div>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
         <Select aria-label="Document type" value={kind} onChange={(e) => setKind(e.target.value)} className="w-auto">
@@ -154,14 +154,11 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
           <option value="receipt">Receipt</option>
           <option value="bank_statement">Bank statement</option>
           <option value="credit_card_statement">Credit-card statement</option>
-          <option value="entity_document">Entity document</option>
-          <option value="farm_record">Farm record</option>
-          <option value="tax_document">Tax document</option>
         </Select>
         <input ref={ref} type="file" multiple accept="application/pdf,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => e.target.files && send(e.target.files)} />
         <Button variant="primary" disabled={pending} onClick={() => ref.current?.click()}>Choose files</Button>
         {demo && (
-          <Button variant="ai" disabled={pending} onClick={() => start(async () => {
+          <Button disabled={pending} onClick={() => start(async () => {
             const r = await uploadSampleInvoice();
             toast(r.ok ? { tone: "success", title: r.message ?? "Uploaded" } : { tone: "error", title: r.error });
             router.refresh();
@@ -177,7 +174,7 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
 
 const FIELDS: [keyof NonNullable<DocRow["extraction"]>, string][] = [["vendor", "Vendor"], ["documentNumber", "Document number"], ["documentDate", "Document date"], ["dueDate", "Due date"], ["poNumber", "PO number"], ["subtotal", "Subtotal"], ["tax", "Tax"], ["total", "Total"], ["currency", "Currency"]];
 
-function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc?: DocRow; onClose: () => void; canMatch: boolean; canUpload: boolean; expenseAccounts: { id: string; name: string }[] }) {
+function DocDrawer({ doc, onClose, canMatch, canUpload, demo, expenseAccounts }: { doc?: DocRow; onClose: () => void; canMatch: boolean; canUpload: boolean; demo: boolean; expenseAccounts: { id: string; name: string }[] }) {
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const [billAcct, setBillAcct] = useState("");
@@ -193,9 +190,8 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
   if (!doc) return <Drawer open={false} onClose={onClose} title="">{null}</Drawer>;
   const e = doc.extraction;
   const fmtVal = (k: string, v: unknown) => (v == null || v === "" ? "—" : ["subtotal", "tax", "total"].includes(k) ? money(v as number, { decimals: true }) : k.endsWith("Date") ? prettyDate(v as string, { year: true }) : String(v));
-  const extractable = ["invoice", "receipt", "bank_statement", "credit_card_statement"].includes(doc.kind);
   return (
-    <Drawer open onClose={onClose} width={1040} title={doc.filename} subtitle={`${KIND_LABEL[doc.kind]} · ${doc.uploadedBy} · ${doc.uploadedAt} UTC`}>
+    <Drawer open onClose={onClose} width={1040} title={doc.filename} subtitle={`${KIND_LABEL[doc.kind]} · ${doc.uploadedAt}`}>
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
         <div>
           <div className="rounded-xl border border-line overflow-hidden bg-sunken aspect-[8.5/11]">
@@ -207,19 +203,14 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
             )}
           </div>
           <div className="mt-2 flex items-center justify-between text-[12px] text-muted">
-            <span>{doc.synthetic ? "Seeded record — preview is generated from extracted fields (synthetic)." : `${(doc.size / 1024).toFixed(0)} KB · stored securely outside the web root`}</span>
+            <span>{doc.synthetic ? (demo ? "Seeded record — preview is generated from extracted fields (synthetic)." : "") : `${(doc.size / 1024).toFixed(0)} KB`}</span>
             <a href={`/api/v1/documents/${doc.id}/file?download=1`} className="inline-flex items-center gap-1 text-brand-700 hover:underline">Download <ExternalLink className="size-3" /></a>
           </div>
         </div>
         <div className="space-y-5 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatusPill status={doc.status} />
-            {e && <AiBadge label={`Extracted by ${e.provider}`} />}
-            {doc.tags.map((t) => <Badge key={t} tone="neutral">{t}</Badge>)}
-          </div>
+          <StatusPill status={doc.status} />
           {doc.error && <Notice tone="crit" title="Extraction failed">{doc.error}</Notice>}
           {e?.warnings.map((w) => <Notice key={w} tone="warn">{w}</Notice>)}
-          {!extractable && !e && <Notice tone="info">Stored for your records. Fabrik extracts fields from invoices, receipts and bank/card statements in this release.</Notice>}
 
           {e && !editing && (
             <section>
@@ -232,7 +223,7 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
                   <div key={k} className="flex items-center gap-3 px-3.5 py-2 text-[13px]">
                     <span className="text-muted w-32 shrink-0">{label}</span>
                     <span className="flex-1 font-medium tabular truncate">{fmtVal(k, e[k])}</span>
-                    {e.fieldConfidence[k] != null && <span className={cn("text-[11.5px] tabular", e.fieldConfidence[k]! >= 0.95 ? "text-ok-600" : "text-warn-700")}>{Math.round(e.fieldConfidence[k]! * 100)}%</span>}
+                    {e.fieldConfidence[k] != null && e.fieldConfidence[k]! < 0.95 && <span className="text-[11.5px] tabular text-warn-700">{Math.round(e.fieldConfidence[k]! * 100)}%</span>}
                   </div>
                 ))}
               </div>
@@ -276,14 +267,13 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
                         <div className="text-[12px] font-medium text-ai-600">Possible transaction</div>
                         <span className="text-[13px] font-semibold tabular">Match confidence: {Math.round(c.confidence * 100)}%</span>
                       </div>
-                      <ConfidenceBar value={c.confidence} className="mt-2" />
                       <div className="mt-2.5 font-mono text-[12.5px]">{c.description}</div>
                       <div className="mt-0.5 flex items-center justify-between text-[13px]">
                         <span className="text-muted">{prettyDate(c.date, { year: true })} · {c.category}</span>
                         <span className="font-semibold tabular">{money(c.amount, { decimals: true })}</span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {c.reasons.map((r) => <Badge key={r} tone="neutral">{r}</Badge>)}
+                        {c.reasons.slice(0, 2).map((r) => <Badge key={r} tone="neutral">{r}</Badge>)}
                       </div>
                       {canMatch && (
                         <div className="mt-3 flex gap-2">
@@ -296,7 +286,7 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-[13px] text-muted">No matching QuickBooks transaction yet. If this is an unpaid invoice, create a bill so it shows in Bills and your cash forecast.</p>
+                  <p className="text-[13px] text-muted">No matching transaction yet.</p>
                   {canUpload && doc.kind === "invoice" && !doc.hasBill && e?.total && (
                     <div className="flex gap-2">
                       <Select aria-label="Expense category" value={billAcct} onChange={(ev) => setBillAcct(ev.target.value)} className="flex-1">
@@ -311,7 +301,6 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, expenseAccounts }: { doc
               )}
             </section>
           )}
-          {e && <p className="text-[11.5px] text-subtle">Model: {e.provider} {e.providerVersion}. Every extraction and match decision is recorded in the audit trail.</p>}
         </div>
       </div>
     </Drawer>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { money, moneyCompact } from "@/lib/format";
 
@@ -169,15 +169,6 @@ export function ConfidenceBadge({ value, thresholds = { autoApprove: 0.98, revie
   );
 }
 
-export function ConfidenceBar({ value, className }: { value: number; className?: string }) {
-  const color = value >= 0.98 ? "bg-ok-600" : value >= 0.85 ? "bg-warn-500" : "bg-risk-600";
-  return (
-    <div className={cn("h-1.5 w-full rounded-full bg-sunken overflow-hidden", className)} aria-hidden>
-      <div className={cn("h-full rounded-full", color)} style={{ width: `${Math.max(4, value * 100)}%` }} />
-    </div>
-  );
-}
-
 /** Requirement classification (A = PRD-confirmed, B = proposed Fondo-inspired, C = future/restricted). */
 export function ClassBadge({ cls, compact }: { cls: "A" | "B" | "C"; compact?: boolean }) {
   const map = { A: ["brand", "PRD"], B: ["ai", "Proposed"], C: ["neutral", "Future"] } as const;
@@ -195,28 +186,12 @@ export function Money({ cents, decimals, compact, sign, className }: { cents: nu
   return <span className={cn("tabular", cents < 0 && "text-ink", className)}>{compact ? moneyCompact(cents) : money(cents, { decimals, sign })}</span>;
 }
 
-export function Delta({ value, goodWhen = "up", suffix = "", className }: { value: number; goodWhen?: "up" | "down"; suffix?: string; className?: string }) {
-  if (!Number.isFinite(value) || value === 0) return <span className={cn("text-[12px] text-muted", className)}>No change{suffix}</span>;
-  const up = value > 0;
-  const good = goodWhen === "up" ? up : !up;
-  const Icon = up ? ArrowUpRight : ArrowDownRight;
-  return (
-    <span className={cn("inline-flex items-center gap-0.5 text-[12px] font-medium tabular", good ? "text-ok-600" : "text-risk-600", className)}>
-      <Icon className="size-3.5" aria-hidden />
-      {Math.abs(value * 100).toFixed(1)}%<span className="font-normal text-muted ml-1">{suffix}</span>
-    </span>
-  );
-}
-
-export function KpiCard({ label, value, delta, href, hint, className, children }: { label: string; value: ReactNode; delta?: ReactNode; href?: string; hint?: ReactNode; className?: string; children?: ReactNode }) {
+export function KpiCard({ label, value, href, hint, className, children }: { label: string; value: ReactNode; href?: string; hint?: ReactNode; className?: string; children?: ReactNode }) {
   const body = (
     <>
       <div className="text-[13px] text-muted font-medium">{label}</div>
       <div className="mt-1.5 text-[24px] leading-8 font-semibold tracking-[-0.01em] text-ink tabular">{value}</div>
-      <div className="mt-1 min-h-5 flex items-center gap-2 flex-wrap">
-        {delta}
-        {hint && <span className="text-[12px] text-muted">{hint}</span>}
-      </div>
+      <div className="mt-1 min-h-5 text-[12px] text-muted">{hint}</div>
       {children}
     </>
   );

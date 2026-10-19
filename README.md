@@ -25,10 +25,9 @@ Sign in with any demo persona — the login page lists them. Password for all: `
 |---|---|---|
 | Business owner | `dan@smithfamilyfarms.example` | Home, Inbox, Funding, CFO, Ask Fabrik |
 | Client finance user | `karen@smithfamilyfarms.example` | Documents, Bills, Collect |
-| External CPA *(proposed role)* | `linda@parkcpa.example` | Reports, Tax & Credits |
 | Fabrik bookkeeper | `sarah.chen@fabrik.example` | AI Review Queue, Reconciliation |
 | Fabrik reviewer | `marcus.reed@fabrik.example` | Close approval, Work Queue |
-| Fabrik admin (MFA) | `priya.nair@fabrik.example` | Administration, requirements matrix |
+| Fabrik admin (MFA) | `priya.nair@fabrik.example` | Administration |
 
 Priya has MFA enabled with a published test secret; in demo mode the MFA screen shows the current code. The **Expo walkthrough** is in [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
 
@@ -51,6 +50,7 @@ Admins can also restore the demo from **Operations → Administration → Reset 
 Copy `.env.example` to `.env.local`. Everything is optional for the demo:
 
 - `SESSION_SECRET`, `ENCRYPTION_KEY` — **required in production** (session signing; AES-256-GCM encryption of OAuth tokens and MFA secrets).
+- `SHOW_EXTRAS` — set to `true` to show screens and widgets beyond the PRD that were hidden in the minimal-UX cleanup (Tax & Credits, the requirements matrix, forecast controls, keyboard shortcuts, …). See [`docs/cleanup-summary.md`](docs/cleanup-summary.md).
 - `FABRIK_CLOCK` — anchors "today" (default `2026-10-16`) so the seeded story is stable. Set empty for real time.
 - `QBO_CLIENT_ID` / `QBO_CLIENT_SECRET` / `QBO_REDIRECT_URI` — enables the live QuickBooks Online OAuth adapter.
 - `FABRIKIDP_URL` / `FABRIKIDP_API_KEY` — routes document extraction to FabrikIDP (images need it; text PDFs work locally).
@@ -63,23 +63,24 @@ Copy `.env.example` to `.env.local`. Everything is optional for the demo:
 **Client portal** (role-aware navigation):
 
 - **Overview** — Home dashboard (PRD KPIs, revenue-vs-expenses trend, AI Finance Brief, books status, "Fabrik needs your help"), Finance Inbox.
-- **Finance** — Books (AI-categorized transactions, explainable detail, P&L / Balance Sheet / Cash Flow with PDF & Excel export, learned rules), Reconciliation, Monthly Close + Finance Package, Bills Lite, Collect Lite.
+- **Finance** — Books (AI-categorized transactions, explainable detail, P&L / Balance Sheet / Cash Flow with PDF & Excel export), Monthly Close + Finance Package, Bills Lite, Collect Lite. Reconciliation is in the navigation for Fabrik staff.
 - **Intelligence** — Funding (profile, 12 researched programs, explainable matching, readiness), CFO (dashboard, 13-week forecast, scenarios), Ask Fabrik.
-- **Documents** — FabrikIDP upload → extraction → transaction matching; Tax & Credits *(Preview — proposed)*.
-- **Manage** — Integrations (QuickBooks sync, retry, idempotency; roadmap connectors), Team & Settings (team, profile & MFA, AI thresholds and rules, bookkeeping schedule, audit trail).
+- **Documents** — FabrikIDP upload → extraction → transaction matching.
+- **Manage** — Integrations (QuickBooks connection and sync history), Settings (team, profile & MFA, AI thresholds and rules, audit trail).
 
-**Operations Portal** (Fabrik staff only): portfolio dashboard with the north-star *human minutes per client per month*, auto-generated global work queue, keyboard-driven AI Review Queue with bulk approve, clients list, administration, and the requirements matrix.
+**Operations Portal** (Fabrik staff only): portfolio dashboard with the north-star *human minutes per client per month*, auto-generated global work queue, AI Review Queue with bulk approve, clients list and administration.
 
 ## Requirements traceability
 
-- [`docs/REQUIREMENTS_MATRIX.md`](docs/REQUIREMENTS_MATRIX.md) — 89 requirements with source page, persona, screen, data, dependencies, acceptance criteria, priority, status and classification (**A** PRD-confirmed · **B** proposed Fondo-inspired · **C** future/restricted). Also rendered in-app at `/ops/requirements`.
+- [`docs/REQUIREMENTS_MATRIX.md`](docs/REQUIREMENTS_MATRIX.md) — 89 requirements with source page, persona, screen, data, dependencies, acceptance criteria, priority, status and classification (**A** PRD-confirmed · **B** proposed Fondo-inspired · **C** future/restricted). Also rendered in-app at `/ops/requirements` when `SHOW_EXTRAS=true`.
+- [`docs/cleanup-audit.md`](docs/cleanup-audit.md) and [`docs/cleanup-summary.md`](docs/cleanup-summary.md) — the PRD scope audit and what the minimal-UX cleanup removed, hid or simplified.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — conflicts between sources and how they were resolved, plus technical decisions and known limitations.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layers, AI agents, data model, integrations, production path.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — controls implemented and what deployment must add.
 
 ## Important limitations (read before demoing to customers)
 
-- Demo data is **synthetic**. Funding programs are real and sourced from official pages (verified 2026-10-16); four were verified against federal regulations on eCFR because agency sites blocked automated access — each program shows its verification note. Fabrik never states that a business qualifies.
+- Demo data is **synthetic**. Funding programs are real and sourced from official pages (verified 2026-10-16); four were verified against federal regulations on eCFR because agency sites blocked automated access — Fabrik staff see each program's verification note. Fabrik never states that a business qualifies.
 - The QuickBooks integration in the demo is a **synthetic sandbox** that behaves like QBO (reports, sync runs, write-back, failures). The live OAuth/API adapter is implemented but has not been exercised against a real Intuit sandbox.
 - The datastore is a local JSON file standing in for PostgreSQL (see `db/schema.sql` and `docs/DECISIONS.md`). It is single-process and not intended for production.
-- Tax & Credits is a **preview of a proposed module**: it tracks deadlines, documents and approvals; it does not prepare, calculate or file anything.
+- Tax & Credits (behind `SHOW_EXTRAS`) is a **preview of a proposed module**: it tracks deadlines, documents and approvals; it does not prepare, calculate or file anything.

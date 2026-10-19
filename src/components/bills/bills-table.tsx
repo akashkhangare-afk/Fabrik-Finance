@@ -2,12 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { FileText } from "lucide-react";
+import { FileText, Paperclip } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate } from "@/lib/dates";
 import { decideBill } from "@/app/actions/app";
-import { Badge, Button, Card, EmptyState, StatusPill } from "@/components/ui/primitives";
+import { Button, Card, EmptyState, StatusPill } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/client";
 
 interface Row {
@@ -27,9 +27,6 @@ interface Row {
 
 const TABS = [
   ["open", "Open"],
-  ["approval", "Needs approval"],
-  ["approved", "Approved"],
-  ["closed", "Paid & rejected"],
   ["all", "All"],
 ] as const;
 
@@ -39,7 +36,7 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
   const toast = useToast();
   const router = useRouter();
   const inTab = (k: (typeof TABS)[number][0], b: Row) =>
-    k === "all" ? true : k === "open" ? b.status !== "paid" && b.status !== "rejected" : k === "approval" ? ["received", "needs_review", "processing"].includes(b.status) : k === "approved" ? b.status === "approved" : b.status === "paid" || b.status === "rejected";
+    k === "all" || (b.status !== "paid" && b.status !== "rejected");
   const rows = bills.filter((b) => inTab(tab, b));
   const act = (id: string, a: "approve" | "reject" | "request_review") =>
     start(async () => {
@@ -57,7 +54,7 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
         ))}
       </div>
       {rows.length === 0 ? (
-        <EmptyState title="No bills here" description="Bills from QuickBooks and uploaded invoices appear automatically." />
+        <EmptyState title="No bills here" />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
@@ -78,7 +75,7 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
                 <tr key={b.id} className="border-b border-line last:border-0 hover:bg-surface-2">
                   <td className="px-5 py-2.5 font-medium whitespace-nowrap">
                     {b.vendor}
-                    {b.source === "document" && <Badge tone="ai" className="ml-2">From document</Badge>}
+                    {b.source === "document" && <Paperclip className="inline size-3.5 ml-1.5 text-subtle" aria-label="From an uploaded document" />}
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
                     {b.documentId ? (
@@ -95,12 +92,12 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
                   <td className="px-5 py-2.5 text-right whitespace-nowrap">
                     {canApprove && b.status !== "approved" && b.status !== "paid" && b.status !== "rejected" ? (
                       <div className="inline-flex gap-1">
-                        <Button size="sm" variant="primary" disabled={pending} onClick={() => act(b.id, "approve")}>Approve</Button>
-                        <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(b.id, "request_review")}>Review</Button>
+                        <Button size="sm" disabled={pending} onClick={() => act(b.id, "approve")}>Approve</Button>
+                        <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(b.id, "request_review")}>Request review</Button>
                         <Button size="sm" variant="ghost" disabled={pending} onClick={() => act(b.id, "reject")}>Reject</Button>
                       </div>
                     ) : (
-                      <span className="text-[12px] text-muted">{b.status === "approved" ? "Ready to pay" : "—"}</span>
+                      <span className="text-[12px] text-muted">{b.status === "approved" ? "Approved" : "—"}</span>
                     )}
                   </td>
                 </tr>

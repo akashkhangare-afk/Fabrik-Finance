@@ -45,7 +45,7 @@ function Rows<T>({ rows, onChange, empty, render, blank, canEdit, addLabel }: { 
   );
 }
 
-export function ProfileForm({ profile, canEdit, syncedAt }: { profile: FarmProfile; canEdit: boolean; syncedAt?: string }) {
+export function ProfileForm({ profile, canEdit, syncedAt, extras }: { profile: FarmProfile; canEdit: boolean; syncedAt?: string; extras: boolean }) {
   const [p, setP] = useState(profile);
   const [pending, start] = useTransition();
   const toast = useToast();
@@ -63,7 +63,7 @@ export function ProfileForm({ profile, canEdit, syncedAt }: { profile: FarmProfi
 
   return (
     <div className="space-y-5 pb-24">
-      <Section title="Financials" subtitle={syncedAt ? `Pre-populated from QuickBooks Online · synced ${syncedAt} UTC` : "From QuickBooks Online"} action={<span className="inline-flex items-center gap-1 text-[12px] text-muted"><RefreshCw className="size-3.5" /> Read-only</span>}>
+      <Section title="Financials" subtitle={syncedAt ? `From QuickBooks Online · synced ${syncedAt}` : "From QuickBooks Online"} action={<span className="inline-flex items-center gap-1 text-[12px] text-muted"><RefreshCw className="size-3.5" /> Read-only</span>}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[["Revenue (YTD)", p.revenue], ["Expenses (YTD)", p.expenses], ["Total assets", p.assets], ["Total debt", p.debt]].map(([l, v]) => (
             <div key={l as string} className="rounded-xl bg-surface-2 border border-line px-3.5 py-2.5">
@@ -82,17 +82,10 @@ export function ProfileForm({ profile, canEdit, syncedAt }: { profile: FarmProfi
               <option value="llc">LLC</option><option value="corporation">Corporation</option><option value="partnership">Partnership</option><option value="sole_proprietor">Sole proprietor</option><option value="trust">Trust</option><option value="cooperative">Cooperative</option>
             </Select>
           </Field>
-          <Field label="EIN" hint="Stored masked"><Input disabled={dis} value={p.ein ?? ""} onChange={(e) => up("ein", e.target.value)} /></Field>
+          {extras && <Field label="EIN" hint="Stored masked"><Input disabled={dis} value={p.ein ?? ""} onChange={(e) => up("ein", e.target.value)} /></Field>}
           <Field label="State"><Input disabled={dis} value={p.state} maxLength={2} onChange={(e) => up("state", e.target.value.toUpperCase())} /></Field>
           <Field label="County"><Input disabled={dis} value={p.county} onChange={(e) => up("county", e.target.value)} /></Field>
           <Field label="Employees"><Input disabled={dis} inputMode="numeric" value={p.employees ?? ""} onChange={(e) => up("employees", num(e.target.value))} /></Field>
-          <Field label="Years farming"><Input disabled={dis} inputMode="numeric" value={p.yearsFarming ?? ""} onChange={(e) => up("yearsFarming", num(e.target.value))} /></Field>
-          <Field label="Beginning farmer?">
-            <Select disabled={dis} value={tri(p.beginningFarmer)} onChange={(e) => up("beginningFarmer", fromTri(e.target.value))}><option value="">Not sure</option><option value="yes">Yes</option><option value="no">No</option></Select>
-          </Field>
-          <Field label="Rural area?">
-            <Select disabled={dis} value={tri(p.ruralArea)} onChange={(e) => up("ruralArea", fromTri(e.target.value))}><option value="">Not sure</option><option value="yes">Yes</option><option value="no">No</option></Select>
-          </Field>
         </div>
       </Section>
 
@@ -107,10 +100,9 @@ export function ProfileForm({ profile, canEdit, syncedAt }: { profile: FarmProfi
       </Section>
 
       <Section title="Land & production">
-        <div className="grid sm:grid-cols-3 gap-3 mb-5">
+        <div className="grid sm:grid-cols-2 gap-3 mb-5">
           <Field label="Acres owned"><Input disabled={dis} inputMode="numeric" value={p.acresOwned ?? ""} onChange={(e) => up("acresOwned", num(e.target.value))} /></Field>
           <Field label="Acres rented"><Input disabled={dis} inputMode="numeric" value={p.acresRented ?? ""} onChange={(e) => up("acresRented", num(e.target.value))} /></Field>
-          <Field label="Base acres (FSA)" hint="Needed for ARC/PLC"><Input disabled={dis} inputMode="numeric" value={p.baseAcres ?? ""} onChange={(e) => up("baseAcres", num(e.target.value))} /></Field>
         </div>
         <div className="grid lg:grid-cols-2 gap-6">
           <div>
@@ -165,29 +157,39 @@ export function ProfileForm({ profile, canEdit, syncedAt }: { profile: FarmProfi
           </>
         )} />
         <div className="mt-5" id="project">
-          <Field label="Project description" hint="A few sentences on what you want to do and why — used for the application-readiness checklist.">
+          <Field label="Project description">
             <Textarea disabled={dis} rows={4} value={p.projectDescription ?? ""} onChange={(e) => up("projectDescription", e.target.value)} placeholder="e.g. Replace our 2012 planter with a 16-row unit with section control to cut seed overlap and fuel use…" />
           </Field>
         </div>
       </Section>
 
-      <Section title="Activities & practices">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Business activities" hint="One per line"><Textarea disabled={dis} rows={4} value={p.activities.join("\n")} onChange={(e) => up("activities", e.target.value.split("\n").filter((x) => x.trim()))} /></Field>
-          <Field label="Conservation practices" hint="One per line"><Textarea disabled={dis} rows={4} value={p.conservationPractices.join("\n")} onChange={(e) => up("conservationPractices", e.target.value.split("\n").filter((x) => x.trim()))} /></Field>
+      <Section title="Business activities">
+        <Field label="Business activities" hint="One per line"><Textarea disabled={dis} rows={4} value={p.activities.join("\n")} onChange={(e) => up("activities", e.target.value.split("\n").filter((x) => x.trim()))} /></Field>
+      </Section>
+
+      <details className="group rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)]">
+        <summary className="cursor-pointer list-none px-5 py-4 text-[15px] font-semibold">More details</summary>
+        <div className="px-5 pb-5 space-y-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Field label="Years farming"><Input disabled={dis} inputMode="numeric" value={p.yearsFarming ?? ""} onChange={(e) => up("yearsFarming", num(e.target.value))} /></Field>
+          <Field label="Beginning farmer?">
+            <Select disabled={dis} value={tri(p.beginningFarmer)} onChange={(e) => up("beginningFarmer", fromTri(e.target.value))}><option value="">Not sure</option><option value="yes">Yes</option><option value="no">No</option></Select>
+          </Field>
+          <Field label="Base acres (FSA)"><Input disabled={dis} inputMode="numeric" value={p.baseAcres ?? ""} onChange={(e) => up("baseAcres", num(e.target.value))} /></Field>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+        <Field label="Conservation practices" hint="One per line"><Textarea disabled={dis} rows={3} value={p.conservationPractices.join("\n")} onChange={(e) => up("conservationPractices", e.target.value.split("\n").filter((x) => x.trim()))} /></Field>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {([["hasCommercialCredit", "Have commercial credit (bank / Farm Credit)?"], ["disasterLossThisYear", "Natural-disaster damage this year?"], ["valueAddedActivity", "Value-added product venture?"], ["stewardshipAssessment", "NRCS stewardship assessment done?"], ["energyAudit", "Energy audit completed?"]] as const).map(([k, l]) => (
             <Field key={k} label={l}>
               <Select disabled={dis} value={tri(p[k])} onChange={(e) => up(k, fromTri(e.target.value))}><option value="">Not sure</option><option value="yes">Yes</option><option value="no">No</option></Select>
             </Field>
           ))}
         </div>
-      </Section>
+        </div>
+      </details>
 
       {canEdit && (
         <div className="fixed bottom-0 inset-x-0 lg:left-[248px] z-30 border-t border-line bg-surface/95 backdrop-blur pl-4 sm:pl-8 pr-44 py-3 flex items-center justify-end gap-3">
-          <span className="text-[12.5px] text-muted hidden sm:block">Saving re-runs funding matching immediately.</span>
           <Button onClick={() => setP(profile)} disabled={pending}>Reset</Button>
           <Button variant="primary" onClick={save} disabled={pending}>{pending ? "Saving…" : "Save profile"}</Button>
         </div>

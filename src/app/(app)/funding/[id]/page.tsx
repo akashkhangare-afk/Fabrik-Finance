@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Circle, CircleX, ExternalLink, FileText, Info } from "lucide-react";
 import { requireCtx } from "@/server/auth/session";
 import { programDetail } from "@/server/services/funding";
-import { sourceKind } from "@/content/funding";
 import { MATCH_LABELS } from "@/server/engines/funding-match";
-import { Badge, Card, CardHeader, DescList, Notice, PageHeader, ProgressRing } from "@/components/ui/primitives";
+import { Badge, Card, CardHeader, DescList, Notice, PageHeader } from "@/components/ui/primitives";
 import { FundingActions } from "@/components/funding/funding-actions";
 import { LEVEL_TONE, TYPE_LABEL } from "@/components/funding/meta";
 import { prettyDate } from "@/lib/dates";
 import { periodLabel } from "@/server/services/close";
+import { showExtras } from "@/server/config";
 
 export const metadata = { title: "Funding opportunity" };
 
@@ -57,7 +57,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
           </Card>
 
           <Card>
-            <CardHeader title="Why Fabrik identified this" subtitle="Criteria checked against your farm/business profile" />
+            <CardHeader title="Why Fabrik identified this" />
             <div className="px-5 pb-5 grid sm:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-muted mb-2.5">Known qualifying factors</h3>
@@ -81,7 +81,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
           </Card>
 
           <Card>
-            <CardHeader title="Application readiness" subtitle="What you'd need to apply — Fabrik doesn't submit applications" action={<ProgressRing value={r.pct / 100} size={52} stroke={5} />} />
+            <CardHeader title="Application readiness" action={<span className="text-[15px] font-semibold tabular">{r.pct}% ready</span>} />
             <ul className="px-5 pb-4">
               {r.items.map((i) => (
                 <li key={i.key} className="flex items-start gap-3 py-2.5 border-t border-line first:border-0">
@@ -94,11 +94,10 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
                 </li>
               ))}
             </ul>
-            <div className="px-5 py-3 border-t border-line text-[13px] font-semibold">{r.pct}% ready</div>
           </Card>
 
           <Card>
-            <CardHeader title="Documents available" subtitle="Generated from your books or already in Documents" />
+            <CardHeader title="Documents available" />
             <ul className="px-5 pb-5 space-y-2">
               {d.booksClosedThrough && ["Profit & Loss", "Balance Sheet", "Statement of Cash Flows"].map((t) => (
                 <li key={t} className="flex items-center gap-2.5 text-[13.5px]"><CheckCircle2 className="size-4 text-ok-600" /> {t} <span className="text-muted text-[12px]">· from closed books through {periodLabel(d.booksClosedThrough!)}</span></li>
@@ -116,7 +115,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
 
         <div className="space-y-5 min-w-0">
           <Card className="p-5">
-            <FundingActions programId={p.id} status={d.watch?.status} />
+            <FundingActions programId={p.id} status={d.watch?.status} extras={showExtras()} />
             <a href={p.officialSourceUrl} target="_blank" rel="noreferrer noopener" className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-line px-3.5 py-2.5 hover:bg-surface-2">
               <span className="min-w-0">
                 <span className="block text-[13px] font-medium">Official source</span>
@@ -124,7 +123,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
               </span>
               <ExternalLink className="size-4 text-muted shrink-0" />
             </a>
-            <div className="mt-2 text-[11.5px] text-muted">{p.lastVerified ? `Last verified ${prettyDate(p.lastVerified, { year: true })}` : "Not yet verified"} · {sourceKind(p.officialSourceUrl)}</div>
+            <div className="mt-2 text-[11.5px] text-muted">{p.lastVerified ? `Last verified ${prettyDate(p.lastVerified, { year: true })}` : "Not yet verified"}</div>
           </Card>
           <Card>
             <CardHeader title="Program details" />
@@ -137,19 +136,19 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
                   ["Funding / loan range", p.fundingRange ? <span>{p.fundingRange}{p.fundingRangeSource && p.fundingRangeSource !== p.officialSourceUrl && <a href={p.fundingRangeSource} target="_blank" rel="noreferrer noopener" className="text-brand-700 hover:underline ml-1">(source)</a>}</span> : "Not specified by the agency"],
                   ["Deadline", p.deadline ?? "Not stated"],
                   ["Eligible entities", p.eligibleEntities.join(" · ")],
-                ]}
+              ]}
               />
+              {[["Eligible activities", p.eligibleActivities], ["Financial criteria", p.financialCriteria], ["Agricultural criteria", p.agriculturalCriteria], ["Required documents", p.requiredDocuments]].filter(([, xs]) => (xs as string[]).length).map(([title, xs]) => (
+                <div key={title as string} className="mt-4">
+                  <h3 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-muted mb-1.5">{title as string}</h3>
+                  <ul className="space-y-1 text-[13px] text-ink-2 list-disc pl-4">
+                    {(xs as string[]).map((x) => <li key={x}>{x}</li>)}
+                  </ul>
+                </div>
+              ))}
             </div>
           </Card>
-          {[["Eligible activities", p.eligibleActivities], ["Financial criteria", p.financialCriteria], ["Agricultural criteria", p.agriculturalCriteria], ["Required documents", p.requiredDocuments]].filter(([, xs]) => (xs as string[]).length).map(([title, xs]) => (
-            <Card key={title as string}>
-              <CardHeader title={title as string} />
-              <ul className="px-5 pb-4 space-y-1.5 text-[13px] text-ink-2 list-disc pl-9">
-                {(xs as string[]).map((x) => <li key={x}>{x}</li>)}
-              </ul>
-            </Card>
-          ))}
-          <Notice tone="neutral" icon={<Info className="size-4" />} title="Verification notes">{p.verificationNotes}</Notice>
+          {ctx.isStaff && <Notice tone="neutral" icon={<Info className="size-4" />} title="Verification notes">{p.verificationNotes}</Notice>}
         </div>
       </div>
     </div>

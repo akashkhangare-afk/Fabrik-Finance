@@ -146,9 +146,3 @@ export const FUNDING_PROGRAMS: FundingProgram[] = (raw as RawProgram[]).map((p) 
   rules: RULES[p.id]?.rules ?? [{ kind: "agricultural_operation", label: "Agricultural operation" }],
   additionalReadiness: RULES[p.id]?.additionalReadiness,
 }));
-
-export function sourceKind(url: string): "program page" | "regulation (eCFR)" | "agency news release" {
-  if (url.includes("ecfr.gov")) return "regulation (eCFR)";
-  if (url.includes("/news/")) return "agency news release";
-  return "program page";
-}

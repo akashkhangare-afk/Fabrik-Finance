@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate, prettyDateTime } from "@/lib/dates";
 import { approveTxn, askClientAboutTxn, draftQuestion, excludeTxn, txnDetail } from "@/app/actions/app";
-import { AiBadge, Badge, Button, ConfidenceBadge, ConfidenceBar, EmptyState, Select, Skeleton, StatusPill, Textarea } from "@/components/ui/primitives";
+import { AiBadge, Badge, Button, ConfidenceBadge, EmptyState, Select, Skeleton, StatusPill, Textarea } from "@/components/ui/primitives";
 import { Drawer, useHandlingTimer, useToast } from "@/components/ui/client";
 import { useQueryState } from "./filters";
 
@@ -28,7 +28,7 @@ export interface TxnRow {
 
 type Thresholds = { autoApprove: number; review: number };
 
-export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canReview, canAskClient }: { rows: TxnRow[]; total: number; page: number; pageSize: number; thresholds: Thresholds; openId?: string; canReview: boolean; canAskClient: boolean }) {
+export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canReview, canAskClient, staff }: { rows: TxnRow[]; total: number; page: number; pageSize: number; thresholds: Thresholds; openId?: string; canReview: boolean; canAskClient: boolean; staff: boolean }) {
   const { set } = useQueryState();
   const [open, setOpen] = useState<string | undefined>(openId);
   useEffect(() => setOpen(openId), [openId]);
@@ -41,9 +41,9 @@ export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canR
           <thead>
             <tr className="text-[12px] text-muted text-left bg-surface-2 border-b border-line whitespace-nowrap">
               <th className="px-5 py-2.5 font-medium w-[96px]">Date</th>
-              <th className="px-3 py-2.5 font-medium">Description</th>
+              <th className="px-3 py-2.5 font-medium">Vendor / Description</th>
               <th className="px-3 py-2.5 font-medium text-right">Amount</th>
-              <th className="px-3 py-2.5 font-medium hidden 2xl:table-cell">Account</th>
+              <th className="px-3 py-2.5 font-medium">Account</th>
               <th className="px-3 py-2.5 font-medium">Category</th>
               <th className="px-3 py-2.5 font-medium">AI confidence</th>
               <th className="px-5 py-2.5 font-medium">Status</th>
@@ -62,7 +62,7 @@ export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canR
                   <div className="text-[11.5px] text-muted font-mono truncate">{r.description}</div>
                 </td>
                 <td className={cn("px-3 py-2.5 text-right tabular whitespace-nowrap font-medium", r.amount > 0 && "text-ok-600")}>{money(r.amount, { decimals: true, sign: r.amount > 0 })}</td>
-                <td className="px-3 py-2.5 text-muted whitespace-nowrap hidden 2xl:table-cell">{r.bank}</td>
+                <td className="px-3 py-2.5 text-muted whitespace-nowrap">{r.bank}</td>
                 <td className="px-3 py-2.5 whitespace-nowrap max-w-[220px] truncate">
                   <span className={cn(r.suggested && "text-ai-600")}>{r.category}</span>
                   {r.suggested && <Sparkles className="inline size-3 ml-1 text-ai-500" aria-label="AI suggestion, not yet final" />}
@@ -81,7 +81,7 @@ export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canR
           <Button size="sm" variant="ghost" disabled={page >= pages} onClick={() => set({ page: String(page + 1) })} aria-label="Next page"><ChevronRight className="size-4" /></Button>
         </div>
       </div>
-      <TransactionDrawer id={open} onClose={() => { setOpen(undefined); if (openId) set({ txn: undefined }); }} canReview={canReview} canAskClient={canAskClient} />
+      <TransactionDrawer id={open} onClose={() => { setOpen(undefined); if (openId) set({ txn: undefined }); }} canReview={canReview} canAskClient={canAskClient} staff={staff} />
     </>
   );
 }
@@ -90,7 +90,7 @@ type Detail = Extract<Awaited<ReturnType<typeof txnDetail>>, { ok: true }>["data
 
 const ACTOR_ICON = { ai: Bot, user: User, system: Cog };
 
-export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id?: string; onClose: () => void; canReview: boolean; canAskClient: boolean }) {
+function TransactionDrawer({ id, onClose, canReview, canAskClient, staff }: { id?: string; onClose: () => void; canReview: boolean; canAskClient: boolean; staff: boolean }) {
   const [d, setD] = useState<Detail>();
   const [err, setErr] = useState<string>();
   const [changing, setChanging] = useState(false);
@@ -137,7 +137,7 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
       title={t ? (ai?.normalizedVendor ?? t.description) : "Transaction"}
       subtitle={t ? `${prettyDate(t.date, { year: true })} · ${d!.bank.name} ••••${d!.bank.mask}` : undefined}
       footer={
-        t && canReview && live ? (
+        t && canReview && live && !asking ? (
           changing ? (
             <>
               <Select aria-label="Category" value={account} onChange={(e) => setAccount(e.target.value)} className="w-auto flex-1 min-w-[200px]">
@@ -151,7 +151,7 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
             <>
               {canAskClient && t.status === "needs_review" && <Button disabled={pending} onClick={async () => { setAsking(true); const r = await draftQuestion(t.id); if (r.ok) setQuestion(r.data ?? ""); }}>Ask client</Button>}
               <Button disabled={pending} onClick={() => { setChanging(true); setAccount(""); }}>Change</Button>
-              <Button variant="primary" disabled={pending || !ai} onClick={() => act(() => approveTxn(t.id, { humanSeconds: elapsed() }))}>Approve {ai ? `· ${d!.suggestedName}` : ""}</Button>
+              <Button variant="primary" disabled={pending || !ai} onClick={() => act(() => approveTxn(t.id, { humanSeconds: elapsed() }))}>Approve</Button>
             </>
           )
         ) : t && canReview && !live && t.status !== "excluded" ? (
@@ -183,7 +183,7 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
                 ["Fabrik category", t.splits?.length ? d.splitNames.map((s) => `${s.name} ${money(s.amount, { decimals: true })}`).join(" · ") : t.accountId ? d.accountName : `${d.suggestedName} (suggested)`],
                 ["Transaction type", (ai?.transactionType ?? t.type).replace(/_/g, " ")],
                 ["Normalized vendor", ai?.normalizedVendor ?? "—"],
-                ["Write-back to QuickBooks", t.syncState === "synced" ? "Synced" : t.syncState === "pending_writeback" ? "Pending" : "Error"],
+                ...(staff ? [["Write-back to QuickBooks", t.syncState === "synced" ? "Synced" : t.syncState === "pending_writeback" ? "Pending" : "Error"]] : []),
               ].map(([k, v]) => (
                 <div key={k} className="bg-surface px-4 py-3">
                   <div className="text-[11.5px] text-muted">{k}</div>
@@ -197,24 +197,18 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
             <section className="rounded-xl border border-ai-100 bg-ai-50/40 p-4">
               <div className="flex items-center justify-between gap-2">
                 <AiBadge label="AI recommendation" />
-                <span className="text-[11.5px] text-muted">{ai.model} {ai.modelVersion}</span>
+                {staff && <span className="text-[11.5px] text-muted">{ai.model} {ai.modelVersion}</span>}
               </div>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="text-[16px] font-semibold">{d.suggestedName}</div>
                 <ConfidenceBadge value={ai.confidence} thresholds={d.thresholds} />
               </div>
-              <ConfidenceBar value={ai.confidence} className="mt-2" />
               <div className="mt-3 text-[13px] text-ink-2"><span className="font-medium text-ink">Reason: </span>{ai.explanation}</div>
-              {d.alternatives.length > 1 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {d.alternatives.map((a) => (
-                    <span key={a.accountId} className="text-[12px] px-2 py-1 rounded-md bg-surface border border-line tabular">{a.name} · {Math.round(a.confidence * 100)}%</span>
-                  ))}
+              {staff && (
+                <div className="mt-3 text-[12px] text-muted">
+                  Decision: {ai.decision === "auto" ? "eligible for automatic processing" : ai.decision === "review" ? "bookkeeper review" : "needs clarification"} · thresholds ≥{Math.round(d.thresholds.autoApprove * 100)}% auto, ≥{Math.round(d.thresholds.review * 100)}% review
                 </div>
               )}
-              <div className="mt-3 text-[12px] text-muted">
-                Decision: {ai.decision === "auto" ? "eligible for automatic processing" : ai.decision === "review" ? "bookkeeper review" : "needs clarification"} · thresholds ≥{Math.round(d.thresholds.autoApprove * 100)}% auto, ≥{Math.round(d.thresholds.review * 100)}% review
-              </div>
             </section>
           )}
 
@@ -247,7 +241,6 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
           {changing && (
             <section className="rounded-xl border border-line p-4 space-y-2">
               <div className="text-[13px] font-semibold">Change category</div>
-              <p className="text-[12.5px] text-muted">Fabrik will learn from this correction for {d.vendor?.name ?? "similar transactions"}.</p>
               <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2} placeholder="Optional note (kept in the audit trail)" />
               {!live && (
                 <div className="flex gap-2">
@@ -280,23 +273,8 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
             )}
           </section>
 
-          {d.history.length > 0 && (
-            <section>
-              <h3 className="text-[13px] font-semibold mb-2">Previous {d.vendor?.name ?? "vendor"} transactions</h3>
-              <ul className="divide-y divide-line rounded-lg border border-line">
-                {d.history.slice(0, 6).map((h) => (
-                  <li key={h.id} className="flex items-center justify-between px-3 py-2 text-[12.5px]">
-                    <span className="text-muted tabular w-24">{prettyDate(h.date, { year: true })}</span>
-                    <span className="flex-1 truncate">{h.account}</span>
-                    <span className="tabular">{money(h.amount, { decimals: true })}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <section>
-            <h3 className="text-[13px] font-semibold mb-3 flex items-center gap-1.5"><History className="size-4 text-muted" /> Audit trail</h3>
+          <details>
+            <summary className="text-[13px] font-semibold mb-3 flex items-center gap-1.5 cursor-pointer list-none"><History className="size-4 text-muted" /> Audit trail <span className="text-[12px] font-normal text-muted">({d.audit.length})</span></summary>
             {d.audit.length ? (
               <ol className="relative border-l border-line ml-2 space-y-4">
                 {d.audit.map((a) => {
@@ -306,7 +284,7 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
                       <span className={cn("absolute -left-[9px] size-[18px] rounded-full flex items-center justify-center ring-4 ring-surface", a.actor.type === "ai" ? "bg-ai-50 text-ai-600" : a.actor.type === "user" ? "bg-brand-50 text-brand-700" : "bg-sunken text-muted")}>
                         <Icon className="size-3" />
                       </span>
-                      <div className="text-[12px] text-muted tabular">{prettyDateTime(a.at)} UTC · {a.actor.name}</div>
+                      <div className="text-[12px] text-muted tabular">{prettyDateTime(a.at)} · {a.actor.name}</div>
                       <div className="text-[13px] mt-0.5">
                         {describe(a.action)}
                         {a.before?.account != null && a.after?.account != null ? `: ${String(a.before.account)} → ${String(a.after.account)}` : a.after?.account != null ? `: ${String(a.after.account)}` : ""}
@@ -320,7 +298,7 @@ export function TransactionDrawer({ id, onClose, canReview, canAskClient }: { id
             ) : (
               <p className="text-[13px] text-muted">No recorded decisions yet.</p>
             )}
-          </section>
+          </details>
         </div>
       )}
     </Drawer>

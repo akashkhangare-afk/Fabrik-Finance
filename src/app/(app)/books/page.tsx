@@ -10,6 +10,7 @@ import { TxnFiltersBar } from "@/components/books/filters";
 import { ReportTable, ReportControls } from "@/components/books/report";
 import { cn } from "@/lib/cn";
 import { prettyDateTime } from "@/lib/dates";
+import { showExtras } from "@/server/config";
 
 export const metadata = { title: "Books" };
 
@@ -18,19 +19,19 @@ type SP = Record<string, string | undefined>;
 export default async function BooksPage({ searchParams }: { searchParams: Promise<SP> }) {
   const ctx = await requireCtx();
   const sp = await searchParams;
-  const tab = sp.tab === "reports" ? "reports" : sp.tab === "rules" ? "rules" : "transactions";
+  const extras = showExtras();
+  const tab = sp.tab === "reports" ? "reports" : sp.tab === "rules" && extras ? "rules" : "transactions";
   const conn = db().connections.find((c) => c.orgId === ctx.org.id && c.provider === "quickbooks_online");
   const tabs = [
     { key: "transactions", label: "Transactions" },
     { key: "reports", label: "Reports" },
-    { key: "rules", label: "AI rules" },
+    ...(extras ? [{ key: "rules", label: "AI rules" }] : []),
   ];
   return (
     <div>
       <PageHeader
         title="Books"
-        description="Every transaction from QuickBooks Online, categorized by Fabrik AI. High-confidence, low-risk items are processed automatically; everything else is reviewed by a person."
-        badge={<Badge tone="neutral">QuickBooks Online · synced {conn?.lastSyncAt ? prettyDateTime(conn.lastSyncAt) : "—"} UTC</Badge>}
+        badge={<Badge tone="neutral">QuickBooks Online · synced {conn?.lastSyncAt ? prettyDateTime(conn.lastSyncAt) : "—"}</Badge>}
       />
       <div className="flex items-center gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist">
         {tabs.map((t) => (
@@ -83,7 +84,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
       <div className="space-y-4">
         <TxnFiltersBar banks={banks.map((b) => ({ id: b.id, name: `${b.name} ••••${b.mask}` }))} accounts={accounts} vendors={vendors} counts={res.statusCounts} />
         <Card className="overflow-hidden">
-          <TxnTable rows={rows} total={res.total} page={res.page} pageSize={res.pageSize} thresholds={ctx.org.thresholds} openId={sp.txn} canReview={hasPerm(ctx, "transactions:review")} canAskClient={hasPerm(ctx, "inbox:ask_client")} />
+          <TxnTable rows={rows} total={res.total} page={res.page} pageSize={res.pageSize} thresholds={ctx.org.thresholds} openId={sp.txn} canReview={hasPerm(ctx, "transactions:review")} canAskClient={hasPerm(ctx, "inbox:ask_client")} staff={ctx.isStaff} />
         </Card>
       </div>
     );
@@ -112,16 +113,17 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
               <h2 className="text-[18px] font-semibold">{report.title}</h2>
               <div className="text-[12.5px] text-muted">{report.subtitle} · Accrual basis</div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {report.checks.map((c) => (
-                <Badge key={c.label} tone={c.ok ? "ok" : "crit"}>{c.ok ? "✓" : "!"} {c.label}</Badge>
-              ))}
-              <Badge tone="neutral">Source: QuickBooks Online</Badge>
-            </div>
+            {report.checks.some((c) => !c.ok) && (
+              <div className="flex gap-2 flex-wrap">
+                {report.checks.filter((c) => !c.ok).map((c) => (
+                  <Badge key={c.label} tone="crit">! {c.label}</Badge>
+                ))}
+              </div>
+            )}
           </div>
           <ReportTable report={report} />
         </Card>
-        <p className="text-[12px] text-subtle">Reports come from the accounting system of record; Fabrik doesn&apos;t keep a parallel ledger. Items still awaiting review appear under Uncategorized until approved.</p>
+        <p className="text-[12px] text-subtle">Items still awaiting review appear under Uncategorized until approved.</p>
       </div>
     );
   }
@@ -158,7 +160,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3 border-t border-line text-[12.5px] text-muted">Rule types: organization · vendor · amount · description · recurring. Manage in <LinkButton href="/settings?tab=ai" variant="ghost" size="sm">Team &amp; Settings → AI</LinkButton></div>
+        <div className="px-5 py-3 border-t border-line text-[12.5px] text-muted">Rule types: organization · vendor · amount · description · recurring. Manage in <LinkButton href="/settings?tab=ai" variant="ghost" size="sm">Settings → AI</LinkButton></div>
       </Card>
     );
   }

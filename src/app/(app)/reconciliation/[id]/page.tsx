@@ -35,7 +35,6 @@ export default async function RecPage({ params }: { params: Promise<{ id: string
         summary={{ ...d.summary, unreconciledBook: d.summary.unreconciledBook.map((i) => ({ ...i, vendor: txnMeta.get(i.transactionId)?.ai?.normalizedVendor ?? i.description })), duplicateBook: d.summary.duplicateBook.map((i) => ({ ...i, vendor: txnMeta.get(i.transactionId)?.ai?.normalizedVendor ?? i.description })) }}
         lines={d.rec.lines}
         outstanding={d.items.filter((i) => d.rec.outstandingTxnIds.includes(i.transactionId))}
-        startBalance={d.rec.statementStartBalance}
         accounts={accounts}
         canWork={hasPerm(ctx, "reconciliation:work")}
         canApprove={hasPerm(ctx, "reconciliation:approve")}

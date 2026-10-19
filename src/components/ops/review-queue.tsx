@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, Check, CheckCheck, Loader2, MessageSquare, PartyPopper, Pencil, ShieldAlert, X } from "lucide-react";
 import { approveTxn, askClientAboutTxn, bulkApproveTxns, draftQuestion, escalateTxn } from "@/app/actions/app";
-import { AiBadge, Badge, Button, Card, ConfidenceBadge, EmptyState, Input, Kbd, Select, Textarea } from "@/components/ui/primitives";
+import { AiBadge, Badge, Button, Card, ConfidenceBadge, EmptyState, Input, Select, Textarea } from "@/components/ui/primitives";
 import { useHandlingTimer, useToast } from "@/components/ui/client";
 import { money } from "@/lib/format";
 import { prettyDate } from "@/lib/dates";
@@ -14,9 +14,7 @@ export interface ReviewRow {
   id: string;
   date: string;
   vendor: string;
-  description: string;
   amount: number;
-  bank: string;
   accountId?: string;
   accountName: string;
   confidence: number;
@@ -42,7 +40,7 @@ const isTyping = (el: EventTarget | null) => {
   return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
 };
 
-export function ReviewQueue({ rows, accounts, thresholds, orgName }: { rows: ReviewRow[]; accounts: AccountOpt[]; thresholds: { autoApprove: number; review: number }; orgName: string }) {
+export function ReviewQueue({ rows, accounts, thresholds, shortcuts }: { rows: ReviewRow[]; accounts: AccountOpt[]; thresholds: { autoApprove: number; review: number }; shortcuts: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const [, startRefresh] = useTransition();
@@ -107,8 +105,9 @@ export function ReviewQueue({ rows, accounts, thresholds, orgName }: { rows: Rev
     }, eligible);
   };
 
-  // Keyboard shortcuts: J/K move, A approve, C change, Q ask, E escalate, X select.
+  // Keyboard shortcuts (SHOW_EXTRAS): J/K move, A approve, C change, Q ask, E escalate, X select.
   useEffect(() => {
+    if (!shortcuts) return;
     const h = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target) || document.querySelector("[role=dialog]")) return;
       const k = e.key.toLowerCase();
@@ -133,12 +132,12 @@ export function ReviewQueue({ rows, accounts, thresholds, orgName }: { rows: Rev
     };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
-  }, [current, fi, visible.length, mode, busy, approve, toggle]);
+  }, [shortcuts, current, fi, visible.length, mode, busy, approve, toggle]);
 
   if (!visible.length) {
     return (
       <Card>
-        <EmptyState icon={<PartyPopper className="size-5" />} title="Queue clear — automation is handling everything for this client" description={`Nothing at ${orgName} needs a decision right now. New uncertain or risky transactions will appear here after the next sync.`} />
+        <EmptyState icon={<PartyPopper className="size-5" />} title="Queue clear" />
       </Card>
     );
   }
@@ -150,8 +149,7 @@ export function ReviewQueue({ rows, accounts, thresholds, orgName }: { rows: Rev
       <Card className="overflow-hidden">
         <div className="flex items-center gap-3 px-4 sm:px-5 py-2.5 border-b border-line bg-surface-2 text-[12.5px] text-muted">
           <input type="checkbox" aria-label="Select all transactions" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((r) => r.id)))} className="size-4 accent-brand-600 cursor-pointer" />
-          <span>{allSelected ? "All selected" : selected.size ? `${bulkIds.length} selected` : "Highest risk and lowest confidence first"}</span>
-          <span className="ml-auto hidden sm:inline tabular">{fi + 1} / {visible.length}</span>
+          <span>{allSelected ? "All selected" : selected.size ? `${bulkIds.length} selected` : "Select all"}</span>
         </div>
         <ul ref={listRef} aria-label="Transactions needing review">
           {visible.map((r, i) => (
@@ -237,13 +235,7 @@ function ReviewItem({ row: r, focused, selected, mode, busy, disabled, accounts,
                 {r.escalated && <Badge tone="info" title={r.escalated}>Escalated</Badge>}
                 {r.decision === "clarify" && <Badge tone="ai">Client input suggested</Badge>}
               </div>
-              <div className="text-[12px] text-muted mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
-                <span className="tabular whitespace-nowrap">{prettyDate(r.date, { year: true })}</span>
-                <span aria-hidden>·</span>
-                <span className="font-mono text-[11.5px] text-ink-2 break-words min-w-0">{r.description}</span>
-                <span aria-hidden className="hidden sm:inline">·</span>
-                <span className="hidden sm:inline whitespace-nowrap">{r.bank}</span>
-              </div>
+              <div className="text-[12px] text-muted mt-0.5 tabular">{prettyDate(r.date, { year: true })}</div>
             </div>
             <div className={cn("text-[17px] font-semibold tabular whitespace-nowrap", out ? "text-ink" : "text-ok-600")}>{money(r.amount, { decimals: true, sign: !out })}</div>
           </div>
@@ -271,23 +263,18 @@ function ReviewItem({ row: r, focused, selected, mode, busy, disabled, accounts,
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button variant="primary" size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onApprove(); }} aria-keyshortcuts="A">
+            <Button variant={focused && !mode ? "primary" : "secondary"} size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onApprove(); }}>
               {busy && !mode ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} Approve
             </Button>
-            <Button size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "change" ? null : "change"); }} aria-expanded={mode === "change"} aria-keyshortcuts="C">
+            <Button size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "change" ? null : "change"); }} aria-expanded={mode === "change"}>
               <Pencil className="size-3.5" /> Change
             </Button>
-            <Button size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "ask" ? null : "ask"); }} aria-expanded={mode === "ask"} aria-keyshortcuts="Q">
+            <Button size="sm" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "ask" ? null : "ask"); }} aria-expanded={mode === "ask"}>
               <MessageSquare className="size-3.5" /> Ask client
             </Button>
-            <Button size="sm" variant="ghost" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "escalate" ? null : "escalate"); }} aria-expanded={mode === "escalate"} aria-keyshortcuts="E">
+            <Button size="sm" variant="ghost" disabled={disabled} onClick={(e) => { e.stopPropagation(); onMode(mode === "escalate" ? null : "escalate"); }} aria-expanded={mode === "escalate"}>
               <ArrowUpRight className="size-3.5" /> Escalate
             </Button>
-            {focused && (
-              <span className="hidden md:inline-flex items-center gap-1 ml-auto text-[11.5px] text-subtle">
-                <Kbd>A</Kbd><Kbd>C</Kbd><Kbd>Q</Kbd><Kbd>E</Kbd>
-              </span>
-            )}
           </div>
 
           {mode === "change" && <ChangePanel row={r} accounts={accounts} busy={busy} onCancel={() => onMode(null)} onSubmit={onChange} />}
@@ -356,7 +343,6 @@ function ChangePanel({ row, accounts, busy, onCancel, onSubmit }: { row: ReviewR
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />} Approve with change
         </Button>
       </form>
-      <p className="text-[11.5px] text-subtle mt-2">Fabrik learns from corrections and may apply this to similar pending transactions.</p>
     </PanelShell>
   );
 }
@@ -384,8 +370,7 @@ function AskPanel({ row, busy, onCancel, onSubmit }: { row: ReviewRow; busy: boo
         {!loading && <AiBadge label="AI draft" className="h-5" />}
       </div>
       <Textarea ref={ref} id={`ask-${row.id}`} value={loading ? "" : body} placeholder={loading ? "Drafting a question…" : "Write a short, specific question"} disabled={loading} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => e.key === "Escape" && onCancel()} rows={3} maxLength={2000} />
-      <div className="mt-2.5 flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[11.5px] text-subtle">The client answers with one tap; their answer returns to processing.</p>
+      <div className="mt-2.5 flex justify-end">
         <Button variant="primary" disabled={busy || loading || !body.trim()} onClick={() => void onSubmit(body)}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : <MessageSquare className="size-4" />} Send to client
         </Button>
@@ -409,7 +394,7 @@ function EscalatePanel({ busy, onCancel, onSubmit }: { busy: boolean; onCancel: 
       >
         <div className="flex flex-col gap-1 flex-1">
           <label htmlFor="escalate-note" className="text-[12px] text-muted font-medium">Note for the reviewer</label>
-          <Input ref={ref} id="escalate-note" value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => e.key === "Escape" && onCancel()} placeholder="e.g. Looks like a capital purchase — confirm treatment" maxLength={300} />
+          <Input ref={ref} id="escalate-note" value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => e.key === "Escape" && onCancel()} placeholder="Note" maxLength={300} />
         </div>
         <Button type="submit" disabled={busy || !note.trim()}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpRight className="size-4" />} Escalate

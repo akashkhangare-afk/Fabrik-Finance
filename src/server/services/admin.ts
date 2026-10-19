@@ -94,12 +94,10 @@ export function toggleRule(ctx: Ctx, ruleId: ID, active: boolean) {
 export function adminOverview() {
   const data = db();
   return {
-    orgs: data.organizations.map((o) => ({ org: o, members: data.memberships.filter((m) => m.orgId === o.id).length, txns: data.transactions.filter((t) => t.orgId === o.id).length })),
+    orgs: data.organizations,
     staff: data.users.filter((u) => u.staffRole),
-    clientUsers: data.users.filter((u) => !u.staffRole).map((u) => ({ user: u, orgs: data.memberships.filter((m) => m.userId === u.id).map((m) => ({ org: data.organizations.find((o) => o.id === m.orgId)?.name, role: m.role })) })),
     riskRules: data.riskRules,
     outbox: [...data.outbox].reverse().slice(0, 50),
-    sessions: data.sessions.length,
   };
 }
 
@@ -175,30 +173,10 @@ export function updateTaxRequest(ctx: Ctx, id: ID, status: TaxDocumentRequest["s
   commit();
 }
 
-export interface RdAnswers {
-  newProcess: boolean;
-  technicalUncertainty: boolean;
-  experimentation: boolean;
-  scienceBased: boolean;
-  qualifiedSpend: boolean;
-}
-
-/** R&D credit screener: surfaces *indicators* only. Calculation and filing are a restricted future capability. */
-export function rdScreener(a: RdAnswers) {
-  const tests = [
-    { key: "newProcess", label: "Developing a new or improved product, process or technique (permitted purpose)", met: a.newProcess },
-    { key: "technicalUncertainty", label: "Uncertainty about capability, method or design at the outset", met: a.technicalUncertainty },
-    { key: "experimentation", label: "A process of experimentation (trials, test plots, iterations)", met: a.experimentation },
-    { key: "scienceBased", label: "Relies on principles of engineering, biology, agronomy or computer science", met: a.scienceBased },
-  ];
-  const met = tests.filter((t) => t.met).length;
-  return { tests, met, indicator: met === 4 && a.qualifiedSpend ? "strong" : met >= 3 ? "possible" : "unlikely", note: "Fabrik does not calculate or file R&D credits. A specialist must confirm eligibility and qualified research expenses." };
-}
-
 // ─── Global search ───────────────────────────────────────────────────────────
 
 const PAGES = [
-  ["Home", "/"], ["Finance Inbox", "/inbox"], ["Books", "/books"], ["Reports", "/books?tab=reports"], ["Reconciliation", "/reconciliation"], ["Monthly Close", "/close"], ["Bills", "/bills"], ["Collect", "/collect"], ["Funding", "/funding"], ["Farm profile", "/funding/profile"], ["CFO", "/cfo"], ["13-week forecast", "/cfo?tab=forecast"], ["Scenarios", "/cfo?tab=scenarios"], ["Ask Fabrik", "/ask"], ["Documents", "/documents"], ["Tax & Credits", "/tax"], ["Integrations", "/integrations"], ["Team & Settings", "/settings"],
+  ["Home", "/"], ["Finance Inbox", "/inbox"], ["Books", "/books"], ["Reports", "/books?tab=reports"], ["Reconciliation", "/reconciliation"], ["Monthly Close", "/close"], ["Bills", "/bills"], ["Collect", "/collect"], ["Funding", "/funding"], ["Farm profile", "/funding/profile"], ["CFO", "/cfo"], ["13-week forecast", "/cfo?tab=forecast"], ["Scenarios", "/cfo?tab=scenarios"], ["Ask Fabrik", "/ask"], ["Documents", "/documents"], ["Integrations", "/integrations"], ["Settings", "/settings"],
 ] as const;
 
 export function search(ctx: Ctx, q: string) {

@@ -70,7 +70,6 @@ export async function txnDetail(id: ID) {
       ...d,
       accountName: tx.accountName(d.txn.accountId),
       suggestedName: tx.accountName(d.txn.ai?.accountId),
-      alternatives: (d.txn.ai?.alternatives ?? []).map((a) => ({ ...a, name: tx.accountName(a.accountId) })),
       splitNames: (d.txn.splits ?? []).map((s) => ({ ...s, name: tx.accountName(s.accountId) })),
       accounts,
       thresholds: ctx.org.thresholds,
@@ -344,10 +343,6 @@ export async function taxRequestStatus(id: ID, status: TaxDocumentRequest["statu
   }, "Tax item updated");
   refresh();
   return r;
-}
-
-export async function rdScreen(a: admin.RdAnswers) {
-  return run("tax:read", () => admin.rdScreener(a));
 }
 
 // ─── Operations ────────────────────────────────────────────────────────────

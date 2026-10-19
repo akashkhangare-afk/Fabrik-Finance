@@ -5,12 +5,11 @@ import { accessibleOrgs, hasPerm, requireCtx } from "@/server/auth/session";
 import { ROLE_LABELS } from "@/server/auth/permissions";
 import { syncWorkQueue } from "@/server/services/ops";
 import { db } from "@/server/db/store";
-import { Avatar, Badge, Card, EmptyState, PageHeader, StatusPill } from "@/components/ui/primitives";
+import { Avatar, Card, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { OrgLink } from "@/components/ops/org-nav";
 import { QueueFilters, WorkAssignSelect, WorkStatusSelect, type FilterDef } from "@/components/ops/queue-controls";
 import { PRIORITY_RANK, PriorityBadge, StaffOnly, TableWrap, WORK_STATUS_LABEL, WORK_TYPE_LABEL, td, th, thNum, tr, tdNum } from "@/components/ops/shared";
 import { monthLabel, monthName, prettyDateTime, relativeAge } from "@/lib/dates";
-import { count, plural } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "Work Queue" };
@@ -40,9 +39,6 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
     .filter(statusOk)
     .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || a.createdAt.localeCompare(b.createdAt));
 
-  const activeAll = all.filter((w) => w.status !== "done" && orgById.has(w.orgId));
-  const byPriority = (p: WorkItem["priority"]) => activeAll.filter((w) => w.priority === p).length;
-  const mine = activeAll.filter((w) => w.assigneeId === ctx.user.id).length;
   const periods = [...new Set(all.map((w) => w.period))].sort().reverse();
   const bookkeeperIds = [...new Set(orgs.map((o) => o.assignedBookkeeperId).filter(Boolean) as string[])];
   const fmtPeriod = (p: string) => (/^\d{4}-\d{2}$/.test(p) ? `${monthName(p)} ${p.slice(0, 4)}` : p);
@@ -59,20 +55,7 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        eyebrow="Fabrik Operations"
-        title="Work Queue"
-        description="Everything that needs a person, across every client you serve — generated from live books, reconciliations, close and integrations."
-        badge={<Badge tone={activeAll.length ? "warn" : "ok"}>{activeAll.length ? `${count(activeAll.length)} active` : "All clear"}</Badge>}
-      />
-
-      <div className="flex flex-wrap gap-2 text-[12.5px]">
-        <Badge tone="crit" dot>{byPriority("critical")} critical</Badge>
-        <Badge tone="risk" dot>{byPriority("high")} high</Badge>
-        <Badge tone="warn" dot>{byPriority("medium")} medium</Badge>
-        <Badge tone="neutral" dot>{byPriority("low")} low</Badge>
-        <span className="text-muted self-center ml-1">· {plural(mine, "item")} assigned to you</span>
-      </div>
+      <PageHeader title="Work Queue" />
 
       <Card>
         <div className="px-5 pt-4 pb-4 border-b border-line">
@@ -81,7 +64,7 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
           </Suspense>
         </div>
         {rows.length === 0 ? (
-          <EmptyState icon={<SquareKanban className="size-5" />} title="No work items match" description={sp.status || sp.client || sp.type || sp.priority || sp.period || sp.bookkeeper ? "Try clearing a filter." : "Every client is current — automation is handling the routine work."} />
+          <EmptyState icon={<SquareKanban className="size-5" />} title="No work items match" />
         ) : (
           <TableWrap>
             <thead>
@@ -93,7 +76,6 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
                 <th className={thNum}>Age</th>
                 <th className={th}>Assigned</th>
                 <th className={th}>Status</th>
-                <th className={th}>Update</th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +87,6 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
                     <td className={td}><PriorityBadge priority={w.priority} /></td>
                     <td className={cn(td, "min-w-[140px]")}>
                       <div className="font-medium text-ink leading-snug">{org.name}</div>
-                      {org.id === ctx.org.id && <div className="text-[11.5px] text-brand-700">Active workspace</div>}
                     </td>
                     <td className={cn(td, "min-w-[240px] max-w-[400px]")}>
                       {w.href ? (
@@ -115,10 +96,10 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
                       ) : (
                         <span className="font-medium leading-snug">{w.title}</span>
                       )}
-                      <div className="text-[11.5px] text-muted mt-0.5">{/^\d{4}-\d{2}$/.test(w.period) ? monthLabel(w.period, "long") : w.period}{w.auto ? " · auto-generated" : " · manual"}</div>
+                      <div className="text-[11.5px] text-muted mt-0.5">{/^\d{4}-\d{2}$/.test(w.period) ? monthLabel(w.period, "long") : w.period}</div>
                     </td>
                     <td className={cn(td, "whitespace-nowrap text-ink-2")}>{WORK_TYPE_LABEL[w.type]}</td>
-                    <td className={cn(tdNum, "text-ink-2")} title={`Created ${prettyDateTime(w.createdAt)} UTC`}>{relativeAge(w.createdAt)}</td>
+                    <td className={cn(tdNum, "text-ink-2")} title={`Created ${prettyDateTime(w.createdAt)}`}>{relativeAge(w.createdAt)}</td>
                     <td className={cn(td, "whitespace-nowrap")}>
                       {canAssign ? (
                         <WorkAssignSelect id={w.id} title={w.title} assigneeId={w.assigneeId} staff={staffOpts} />
@@ -131,7 +112,6 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
                         <span className="text-muted">Unassigned</span>
                       )}
                     </td>
-                    <td className={cn(td, "whitespace-nowrap")}><StatusPill status={w.status} /></td>
                     <td className={cn(td, "whitespace-nowrap")}>
                       <WorkStatusSelect id={w.id} title={w.title} status={w.status} />
                     </td>
@@ -141,11 +121,6 @@ export default async function WorkQueuePage({ searchParams }: { searchParams: Pr
             </tbody>
           </TableWrap>
         )}
-        <div className="px-5 py-3 border-t border-line text-[12px] text-muted flex flex-wrap gap-x-4 gap-y-1">
-          <span>{plural(rows.length, "item")} shown</span>
-          <span>Sorted by priority, then oldest first</span>
-          {!canAssign && <span>Reassignment is available to reviewers and admins</span>}
-        </div>
       </Card>
     </div>
   );

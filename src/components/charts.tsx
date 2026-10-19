@@ -61,12 +61,11 @@ export interface MonthPoint {
 export function RevenueExpenseChart({ series, ranges, defaultRange = "12m", height = 260 }: { series: Record<string, MonthPoint[]>; ranges: { value: string; label: string }[]; defaultRange?: string; height?: number }) {
   const [range, setRange] = useState(defaultRange);
   const data = series[range] ?? [];
-  const totals = data.reduce((t, d) => ({ r: t.r + d.revenue, e: t.e + d.expenses }), { r: 0, e: 0 });
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <Legend items={[{ label: `Revenue · ${moneyCompact(totals.r)}`, color: SERIES.s1 }, { label: `Expenses · ${moneyCompact(totals.e)}`, color: SERIES.s2 }, { label: "Net income", color: SERIES.s3, kind: "line" }]} />
-        <Segmented size="sm" label="Period" value={range} onChange={setRange} options={ranges} />
+        <Legend items={[{ label: "Revenue", color: SERIES.s1 }, { label: "Expenses", color: SERIES.s2 }]} />
+        {ranges.length > 1 && <Segmented size="sm" label="Period" value={range} onChange={setRange} options={ranges} />}
       </div>
       <div style={{ height }} role="img" aria-label={`Revenue and expenses by month, ${ranges.find((r) => r.value === range)?.label}`}>
         <ResponsiveContainer width="100%" height="100%">
@@ -80,12 +79,11 @@ export function RevenueExpenseChart({ series, ranges, defaultRange = "12m", heig
               content={(p: TooltipContentProps<ValueType, NameType>) => {
                 if (!p.active || !p.payload?.length) return null;
                 const d = p.payload[0]!.payload as MonthPoint;
-                return <TooltipShell title={`${d.label}${d.partial ? " (month to date)" : ""}`} rows={[{ label: "Revenue", value: moneyCompact(d.revenue), color: SERIES.s1 }, { label: "Expenses", value: moneyCompact(d.expenses), color: SERIES.s2 }, { label: "Net income", value: moneyCompact(d.net), color: SERIES.s3 }]} />;
+                return <TooltipShell title={`${d.label}${d.partial ? " (month to date)" : ""}`} rows={[{ label: "Revenue", value: moneyCompact(d.revenue), color: SERIES.s1 }, { label: "Expenses", value: moneyCompact(d.expenses), color: SERIES.s2 }]} />;
               }}
             />
             <Bar isAnimationActive={false} dataKey="revenue" fill={SERIES.s1} radius={[4, 4, 0, 0]} maxBarSize={22} />
             <Bar isAnimationActive={false} dataKey="expenses" fill={SERIES.s2} radius={[4, 4, 0, 0]} maxBarSize={22} />
-            <Line isAnimationActive={false} dataKey="net" stroke={SERIES.s3} strokeWidth={2} dot={{ r: 3.5, fill: SERIES.s3, stroke: "#fff", strokeWidth: 2 }} activeDot={{ r: 5, stroke: "#fff", strokeWidth: 2 }} type="monotone" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -205,19 +203,13 @@ export function ScenarioChart({ data, buffer, height = 240 }: { data: { label: s
   );
 }
 
-// ─── Aging bar (single horizontal stacked bar with 2px surface gaps) ─────────
+// ─── AR aging buckets ────────────────────────────────────────────────────────
 
-export function AgingBar({ buckets }: { buckets: { label: string; value: number; tone: "ok" | "warn" | "risk" | "crit" }[] }) {
-  const total = buckets.reduce((s, b) => s + b.value, 0) || 1;
+export function AgingBuckets({ buckets }: { buckets: { label: string; value: number; tone: "ok" | "warn" | "risk" | "crit" }[] }) {
   const color = { ok: SERIES.s1, warn: "#e9b949", risk: SERIES.s2, crit: "#c2452f" };
   return (
     <div>
-      <div className="flex h-3 w-full gap-[2px] rounded-full overflow-hidden" role="img" aria-label={buckets.map((b) => `${b.label} ${moneyCompact(b.value)}`).join(", ")}>
-        {buckets.filter((b) => b.value > 0).map((b) => (
-          <div key={b.label} title={`${b.label}: ${moneyCompact(b.value)}`} style={{ width: `${(b.value / total) * 100}%`, background: color[b.tone] }} />
-        ))}
-      </div>
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {buckets.map((b) => (
           <div key={b.label}>
             <div className="flex items-center gap-1.5 text-[12px] text-muted">
@@ -229,18 +221,5 @@ export function AgingBar({ buckets }: { buckets: { label: string; value: number;
         ))}
       </div>
     </div>
-  );
-}
-
-export function Sparkline({ values, color = SERIES.s3, height = 36 }: { values: number[]; color?: string; height?: number }) {
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const w = 120;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${height - 3 - ((v - min) / (max - min || 1)) * (height - 6)}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} aria-hidden preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    </svg>
   );
 }
