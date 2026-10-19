@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -54,6 +54,17 @@ export function useToast() {
 
 // ─── Overlay primitives ─────────────────────────────────────────────────────
 
+const noopSubscribe = () => () => {};
+
+/**
+ * False on the server and during hydration, true afterwards. Overlays portal into document.body,
+ * which the server can't render, so one that starts open (e.g. /collect?invoice=…) waits for this
+ * instead of making the first client render differ from the server HTML.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
 function useEscape(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
@@ -98,10 +109,11 @@ function useFocusTrap(open: boolean) {
 }
 
 export function Drawer({ open, onClose, title, subtitle, children, footer, width = 560 }: { open: boolean; onClose: () => void; title: ReactNode; subtitle?: ReactNode; children: ReactNode; footer?: ReactNode; width?: number }) {
-  useEscape(open, onClose);
-  const ref = useFocusTrap(open);
+  const shown = useHydrated() && open;
+  useEscape(shown, onClose);
+  const ref = useFocusTrap(shown);
   const id = useId();
-  if (!open || typeof document === "undefined") return null;
+  if (!shown) return null;
   return createPortal(
     <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-ink/25 backdrop-blur-[1px]" onClick={onClose} />
@@ -124,10 +136,11 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
 }
 
 export function Modal({ open, onClose, title, description, children, footer, width = 480 }: { open: boolean; onClose: () => void; title: ReactNode; description?: ReactNode; children?: ReactNode; footer?: ReactNode; width?: number }) {
-  useEscape(open, onClose);
-  const ref = useFocusTrap(open);
+  const shown = useHydrated() && open;
+  useEscape(shown, onClose);
+  const ref = useFocusTrap(shown);
   const id = useId();
-  if (!open || typeof document === "undefined") return null;
+  if (!shown) return null;
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-ink/30" onClick={onClose} />
