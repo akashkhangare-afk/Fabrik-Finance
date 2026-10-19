@@ -86,11 +86,16 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
   };
 
   const nav = (compact: boolean) => (
-    <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 pb-4">
+    <nav aria-label="Main" className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4">
       {groups.map((g) => (
-        <div key={g.label} className={cn("mt-5 first:mt-2", g.staff && "pt-4 border-t border-line")}>
-          {!compact && <div className={cn("px-2.5 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.09em]", g.staff ? "text-ai-600" : "text-subtle")}>{g.label}</div>}
-          <ul className="space-y-0.5">
+        <div key={g.label} className={cn("mt-4 first:mt-1", g.staff && "mt-5 pt-4 border-t border-dashed border-line-strong")}>
+          {!compact && (
+            <div className={cn("px-2.5 mb-1 h-6 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]", g.staff ? "text-ai-600" : "text-subtle")}>
+              {g.staff && <span className="size-1.5 rounded-full bg-ai-500" aria-hidden />}
+              {g.label}
+            </div>
+          )}
+          <ul className="space-y-px">
             {g.items.map((it) => {
               const Icon = ICONS[it.icon] ?? House;
               const active = isActive(pathname, it.href);
@@ -100,16 +105,21 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
                     href={it.href}
                     title={compact ? it.label : undefined}
                     aria-current={active ? "page" : undefined}
-                    className={cn("group flex items-center gap-2.5 rounded-lg h-9 text-[13.5px] transition-colors", compact ? "justify-center px-0" : "px-2.5", active ? "bg-brand-50 text-brand-800 font-medium" : "text-ink-2 hover:bg-sunken hover:text-ink")}
+                    className={cn(
+                      "group relative flex items-center gap-2.5 rounded-[var(--radius-control)] h-9 text-[13.5px] transition-[background-color,color,box-shadow] duration-150",
+                      compact ? "justify-center px-0" : "px-2.5",
+                      active ? "bg-surface text-ink font-medium shadow-[var(--shadow-xs),0_0_0_1px_var(--color-line)]" : "text-ink-2 hover:bg-sunken hover:text-ink",
+                    )}
                   >
-                    <Icon className={cn("size-[18px] shrink-0", active ? "text-brand-600" : "text-muted group-hover:text-ink-2")} />
+                    {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-brand-600" aria-hidden />}
+                    <Icon className={cn("size-[18px] shrink-0 transition-colors", active ? "text-brand-600" : "text-muted group-hover:text-ink-2")} />
                     {!compact && <span className="truncate flex-1">{it.label}</span>}
                     {!compact && it.tag && <span className="text-[10px] font-semibold uppercase tracking-wide text-ai-600 bg-ai-50 rounded px-1.5 py-0.5">{it.tag}</span>}
                     {it.badge ? (
                       compact ? (
-                        <span className="absolute ml-5 -mt-5 size-2 rounded-full bg-risk-600" />
+                        <span className="absolute top-1.5 right-3 size-2 rounded-full bg-risk-600 ring-2 ring-canvas" />
                       ) : (
-                        <span className="min-w-5 h-5 px-1.5 rounded-full bg-risk-600 text-white text-[11px] font-semibold flex items-center justify-center tabular">{it.badge}</span>
+                        <span className={cn("min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center tabular", active ? "bg-risk-600 text-white" : "bg-risk-50 text-risk-600 ring-1 ring-inset ring-[#f1c9b4]")}>{it.badge}</span>
                       )
                     ) : null}
                   </IntentLink>
@@ -125,13 +135,13 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
   return (
     <div className="min-h-dvh">
       {/* Desktop sidebar */}
-      <aside className={cn("no-print hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col bg-surface border-r border-line transition-[width] duration-200", collapsed ? "w-[68px]" : "w-[248px]")}>
+      <aside className={cn("no-print hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col bg-surface-2 border-r border-line transition-[width] duration-200", collapsed ? "w-[68px]" : "w-[256px]")}>
         <div className={cn("h-16 flex items-center shrink-0", collapsed ? "justify-center" : "px-5")}>
-          <Link href="/" aria-label="Fabrik Finance home">{collapsed ? <LogoMark /> : <Wordmark />}</Link>
+          <Link href="/" aria-label="Fabrik Finance home" className="rounded-lg">{collapsed ? <LogoMark /> : <Wordmark />}</Link>
         </div>
         {nav(collapsed)}
         <div className="border-t border-line p-3">
-          <button onClick={toggle} className={cn("flex items-center gap-2 w-full h-9 rounded-lg text-[13px] text-muted hover:bg-sunken hover:text-ink", collapsed ? "justify-center" : "px-2.5")} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+          <button onClick={toggle} className={cn("flex items-center gap-2 w-full h-9 rounded-[var(--radius-control)] text-[13px] text-muted hover:bg-sunken hover:text-ink transition-colors", collapsed ? "justify-center" : "px-2.5")} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
             {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
             {!collapsed && "Collapse"}
           </button>
@@ -141,8 +151,8 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
       {/* Mobile sidebar */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-[65]">
-          <div className="absolute inset-0 bg-ink/30" onClick={() => setMobileOpen(false)} />
-          <aside className="animate-in absolute inset-y-0 left-0 w-[280px] bg-surface flex flex-col shadow-[var(--shadow-pop)]">
+          <div className="animate-backdrop absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={() => setMobileOpen(false)} />
+          <aside className="animate-in absolute inset-y-0 left-0 w-[288px] max-w-[85vw] bg-surface-2 flex flex-col shadow-[var(--shadow-pop)] rounded-r-2xl">
             <div className="h-16 flex items-center justify-between px-5">
               <Wordmark />
               <button onClick={() => setMobileOpen(false)} className="size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Close menu">
@@ -154,8 +164,8 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
         </div>
       )}
 
-      <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]")}>
-        <header className="no-print sticky top-0 z-30 h-16 bg-canvas/85 backdrop-blur-md border-b border-line/70">
+      <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-[68px]" : "lg:pl-[256px]")}>
+        <header className="no-print sticky top-0 z-30 h-16 bg-canvas/80 backdrop-blur-xl backdrop-saturate-150 border-b border-line/70">
           <div className="h-full flex items-center gap-2 px-4 sm:px-6 lg:px-8">
             <button onClick={() => setMobileOpen(true)} className="lg:hidden size-9 -ml-1 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Open menu">
               <Menu className="size-5" />
@@ -168,8 +178,8 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
             </button>}
             <div className="flex-1" />
             {sync && (
-              <Link href="/integrations" className={cn("hidden xl:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px]", sync.status === "connected" ? "text-muted hover:bg-sunken" : "text-crit-600 bg-crit-50")} title="QuickBooks Online sync">
-                <RefreshCw className="size-3.5" />
+              <Link href="/integrations" className={cn("hidden xl:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full text-[12px] transition-colors", sync.status === "connected" ? "text-muted hover:bg-sunken hover:text-ink" : "text-crit-600 bg-crit-50 ring-1 ring-inset ring-[#f0c2c2]")} title="QuickBooks Online sync">
+                {sync.status === "connected" ? <span className="relative flex size-2"><span className="absolute inset-0 rounded-full bg-ok-600/40 animate-ping [animation-duration:2.5s]" /><span className="relative size-2 rounded-full bg-ok-600" /></span> : <RefreshCw className="size-3.5" />}
                 {sync.status === "connected" ? `QuickBooks synced ${sync.at ?? ""}` : "QuickBooks needs attention"}
               </Link>
             )}
@@ -182,7 +192,8 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
             <UserMenu user={user} isStaff={isStaff} />
           </div>
         </header>
-        <main id="main" className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1440px] mx-auto">{children}</main>
+        {/* Extra bottom space keeps the floating Ask Fabrik button from covering the last row of content. */}
+        <main id="main" key={pathname} className="animate-page px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8 pb-28 max-w-[1440px] mx-auto">{children}</main>
       </div>
       {search && <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />}
       {pathname !== "/ask" && <AskLauncher />}

@@ -4,7 +4,8 @@ import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 import { requestPasswordReset, resetPassword, signIn, verifyMfa } from "@/app/actions/auth";
-import { Button, Field, Input, Notice, Badge } from "@/components/ui/primitives";
+import { Avatar, Button, Field, Input, Notice, Badge } from "@/components/ui/primitives";
+import { cn } from "@/lib/cn";
 
 export interface DemoAccountView {
   email: string;
@@ -28,7 +29,7 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
   };
   return (
     <div>
-      <h2 className="text-[24px] font-semibold tracking-[-0.015em]">Sign in</h2>
+      <h2 className="text-[28px] leading-9 font-semibold tracking-[-0.02em]">Sign in</h2>
       {resetDone && <Notice tone="ok" className="mt-5" title="Password updated">Sign in with your new password.</Notice>}
       <form ref={formRef} action={action} className="mt-6 space-y-4">
         <input type="hidden" name="next" value={next ?? ""} />
@@ -54,14 +55,15 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
           <p className="text-[12px] text-muted mt-1">Smith Family Farms LLC · Story County, Iowa. Choose a persona to sign in.</p>
           <div className="mt-3 grid gap-1.5">
             {demo.map((d) => (
-              <button key={d.email} type="button" onClick={() => use(d.email)} disabled={pending} className="group flex items-center justify-between gap-3 rounded-lg bg-surface border border-line px-3 py-2 text-left hover:border-brand-300 hover:bg-brand-50/40 transition disabled:opacity-60">
-                <div className="min-w-0">
+              <button key={d.email} type="button" onClick={() => use(d.email)} disabled={pending} className="group flex items-center justify-between gap-3 rounded-xl bg-surface border border-line px-3 py-2.5 text-left shadow-[var(--shadow-xs)] hover:border-brand-300 hover:shadow-[var(--shadow-raised)] hover:-translate-y-px active:translate-y-0 transition-[border-color,box-shadow,transform] duration-200 disabled:opacity-60">
+                <Avatar name={d.name} hue={d.email.includes("fabrik") ? 262 : 150} size={32} />
+                <div className="min-w-0 flex-1">
                   <div className="text-[13px] font-medium text-ink truncate">{d.name}</div>
                   <div className="text-[12px] text-muted truncate">{d.persona}</div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {d.mfa && <KeyRound className="size-3.5 text-muted" aria-label="MFA" />}
-                  <span className="text-[12px] text-brand-700 opacity-0 group-hover:opacity-100 transition">{picked === d.email && pending ? "Signing in…" : "Sign in →"}</span>
+                  <span className={cn("text-[12px] font-medium text-brand-700 transition-all duration-200", picked === d.email && pending ? "opacity-100" : "opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0")}>{picked === d.email && pending ? "Signing in…" : "Sign in →"}</span>
                 </div>
               </button>
             ))}

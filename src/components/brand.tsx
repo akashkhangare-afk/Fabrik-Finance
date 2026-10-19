@@ -17,9 +17,9 @@ export function Wordmark({ className, collapsed }: { className?: string; collaps
     <div className={cn("flex items-center gap-2.5", className)}>
       <LogoMark />
       {!collapsed && (
-        <div className="leading-none">
-          <div className="text-[15px] font-semibold tracking-[-0.01em] text-ink">Fabrik Finance</div>
-          <div className="text-[11px] text-muted mt-1">AI Finance for Land &amp; Agriculture</div>
+        <div className="leading-none min-w-0">
+          <div className="text-[15px] font-semibold tracking-[-0.015em] text-ink whitespace-nowrap">Fabrik Finance</div>
+          <div className="text-[10.5px] text-muted mt-1 whitespace-nowrap tracking-[0.005em]">AI Finance for Land &amp; Agriculture</div>
         </div>
       )}
     </div>
