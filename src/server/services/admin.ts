@@ -94,12 +94,10 @@ export function toggleRule(ctx: Ctx, ruleId: ID, active: boolean) {
 export function adminOverview() {
   const data = db();
   return {
-    orgs: data.organizations.map((o) => ({ org: o, members: data.memberships.filter((m) => m.orgId === o.id).length, txns: data.transactions.filter((t) => t.orgId === o.id).length })),
+    orgs: data.organizations,
     staff: data.users.filter((u) => u.staffRole),
-    clientUsers: data.users.filter((u) => !u.staffRole).map((u) => ({ user: u, orgs: data.memberships.filter((m) => m.userId === u.id).map((m) => ({ org: data.organizations.find((o) => o.id === m.orgId)?.name, role: m.role })) })),
     riskRules: data.riskRules,
     outbox: [...data.outbox].reverse().slice(0, 50),
-    sessions: data.sessions.length,
   };
 }
 
