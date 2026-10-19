@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Info, TrendingUp } from "lucide-react";
 import { requireCtx } from "@/server/auth/session";
 import { cfoInsights, getForecast, getKpis, scenarioBaseline, ledgerDataFor } from "@/server/services/finance";
 import { balances, buildPostings } from "@/server/engines/ledger";
-import { AiBadge, Card, CardHeader, KpiCard, PageHeader } from "@/components/ui/primitives";
+import { AiBadge, Card, CardHeader, KpiCard, PageHeader, PageTabs } from "@/components/ui/primitives";
 import { ForecastChart } from "@/components/charts";
 import { ForecastControls, ForecastWeeks } from "@/components/cfo/forecast";
 import { ScenarioLab } from "@/components/cfo/scenarios";
@@ -26,11 +26,7 @@ export default async function CfoPage({ searchParams }: { searchParams: Promise<
   return (
     <div>
       <PageHeader title="CFO" />
-      <div className="flex items-center gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist">
-        {tabs.map(([k, l]) => (
-          <Link key={k} href={k === "dashboard" ? "/cfo" : `/cfo?tab=${k}`} role="tab" aria-selected={tab === k} className={cn("relative px-3 h-10 inline-flex items-center text-[13.5px] font-medium whitespace-nowrap", tab === k ? "text-ink after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:bg-brand-600 after:rounded" : "text-muted hover:text-ink")}>{l}</Link>
-        ))}
-      </div>
+      <PageTabs className="mb-5" tabs={tabs.map(([k, l]) => ({ href: k === "dashboard" ? "/cfo" : `/cfo?tab=${k}`, label: l, active: tab === k }))} />
       {tab === "dashboard" && <Dashboard />}
       {tab === "forecast" && <ForecastTab />}
       {tab === "scenarios" && (
@@ -66,7 +62,7 @@ export default async function CfoPage({ searchParams }: { searchParams: Promise<
     ];
     return (
       <div className="space-y-6">
-        <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <KpiCard label="Cash" value={moneyCompact(k.cash)} />
           <KpiCard label="Revenue YTD" value={moneyCompact(k.revenueYtd)} />
           <KpiCard label="Expenses YTD" value={moneyCompact(k.expensesYtd)} />

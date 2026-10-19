@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CheckCircle2, Circle, CircleDot, Lightbulb, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Circle, CircleDot, Inbox, Lightbulb, TrendingUp } from "lucide-react";
 import { requireCtx } from "@/server/auth/session";
 import { getKpis, getTrend, financeBrief } from "@/server/services/finance";
 import { currentClose, periodLabel } from "@/server/services/close";
@@ -46,18 +46,23 @@ export default async function HomePage() {
       </header>
 
       {inbox.total > 0 && (
-        <Card>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4">
+        <Card className="relative overflow-hidden border-[#f1c9b4]/70">
+          <div className="absolute inset-y-0 left-0 w-1 bg-risk-600" aria-hidden />
+          <div className="absolute -right-16 -top-16 size-48 rounded-full bg-risk-50 blur-2xl" aria-hidden />
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 pl-6 pr-5 py-4">
+            <span className="hidden sm:flex size-11 rounded-xl bg-risk-50 text-risk-600 ring-1 ring-inset ring-[#f1c9b4] items-center justify-center shrink-0">
+              <Inbox className="size-5" />
+            </span>
             <div className="flex-1 min-w-0">
               <div className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-risk-600">Fabrik needs your help</div>
-              <div className="text-[15px] font-semibold mt-0.5">{plural(inbox.total, "item")} need your input</div>
-              <div className="text-[13px] text-muted mt-1 flex flex-wrap gap-x-3 gap-y-1">
+              <div className="text-[16px] font-semibold mt-0.5 tracking-[-0.01em]">{plural(inbox.total, "item")} need your input</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {attention.map((a) => (
-                  <span key={a.one}>{a.n} {a.n === 1 ? a.one : a.many}</span>
+                  <span key={a.one} className="inline-flex items-center h-6 px-2 rounded-md bg-surface-2 ring-1 ring-inset ring-line text-[12.5px] text-ink-2"><span className="font-semibold tabular mr-1">{a.n}</span>{a.n === 1 ? a.one : a.many}</span>
                 ))}
               </div>
             </div>
-            <LinkButton href="/inbox" variant="primary">Review <ArrowRight className="size-4" /></LinkButton>
+            <LinkButton href="/inbox" variant="primary" size="lg" className="shrink-0">Review <ArrowRight className="size-4" /></LinkButton>
           </div>
         </Card>
       )}
@@ -75,7 +80,7 @@ export default async function HomePage() {
         <Card>
           <CardHeader title="Revenue vs expenses" />
           <div className="px-5 pb-5">
-            <RevenueExpenseChart series={series} defaultRange="12m" ranges={[{ value: "3m", label: "3M" }, { value: "6m", label: "6M" }, { value: "12m", label: "12M" }, { value: "ytd", label: "YTD" }]} />
+            <RevenueExpenseChart height={320} series={series} defaultRange="12m" ranges={[{ value: "3m", label: "3M" }, { value: "6m", label: "6M" }, { value: "12m", label: "12M" }, { value: "ytd", label: "YTD" }]} />
           </div>
         </Card>
         <Card>
@@ -85,7 +90,7 @@ export default async function HomePage() {
               const Icon = TONE_ICON[b.tone];
               return (
                 <li key={b.id}>
-                  <Link href={b.href} className="group flex gap-3 rounded-xl px-2.5 py-2.5 hover:bg-surface-2">
+                  <Link href={b.href} className="group flex gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-surface-2">
                     <span className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", TONE_CLS[b.tone])}>
                       <Icon className="size-4" />
                     </span>
@@ -93,7 +98,7 @@ export default async function HomePage() {
                       <span className="block text-[13.5px] text-ink leading-snug">{b.text}</span>
                       <span className="block text-[11.5px] text-subtle mt-0.5">{b.basis}</span>
                     </span>
-                    <ArrowRight className="size-4 text-subtle opacity-0 group-hover:opacity-100 mt-2 shrink-0" />
+                    <ArrowRight className="size-4 text-brand-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 mt-2 shrink-0" />
                   </Link>
                 </li>
               );
@@ -102,23 +107,30 @@ export default async function HomePage() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader title={`${periodLabel(close.cp.period)} books`} subtitle={close.cp.status === "closed" ? "Closed and reviewed" : `Target close ${prettyDate(close.cp.targetCloseDate)}`} action={<span className="text-[22px] font-semibold tabular">{close.pct}%</span>} />
-          <div className="px-5 pb-5">
-            <ProgressBar value={close.pct / 100} label="Close progress" />
-            <ul className="mt-4 space-y-2">
-              {close.tasks.map((t) => (
-                <li key={t.key} className="flex items-center gap-2.5 text-[13.5px]">
-                  {t.state === "done" ? <CheckCircle2 className="size-4 text-ok-600" /> : t.state === "in_progress" ? <CircleDot className="size-4 text-warn-500" /> : <Circle className="size-4 text-line-strong" />}
-                  <span className={cn(t.state === "done" ? "text-ink-2" : "text-ink font-medium")}>{t.label}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/close" className="mt-4 inline-flex items-center gap-1 text-[13px] text-brand-700 font-medium hover:underline">View monthly close <ArrowRight className="size-3.5" /></Link>
+      <Card>
+        <CardHeader
+          title={`${periodLabel(close.cp.period)} books`}
+          subtitle={close.cp.status === "closed" ? "Closed and reviewed" : `Target close ${prettyDate(close.cp.targetCloseDate)}`}
+          action={<Link href="/close" className="inline-flex items-center gap-1 text-[13px] text-brand-700 font-medium hover:underline underline-offset-4">View monthly close <ArrowRight className="size-3.5" /></Link>}
+        />
+        <div className="px-5 pb-5 grid gap-5 lg:grid-cols-[200px_minmax(0,1fr)] lg:items-center">
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[34px] leading-none font-semibold tracking-[-0.03em] tabular">{close.pct}%</span>
+              <span className="text-[13px] text-muted">complete</span>
+            </div>
+            <ProgressBar value={close.pct / 100} label="Close progress" className="mt-3" />
           </div>
-        </Card>
-      </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2">
+            {close.tasks.map((t) => (
+              <li key={t.key} className={cn("flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] ring-1 ring-inset", t.state === "done" ? "bg-surface-2 ring-line text-ink-2" : t.state === "in_progress" ? "bg-warn-50/60 ring-[#efd9a6] text-ink font-medium" : "bg-surface ring-line text-ink font-medium")}>
+                {t.state === "done" ? <CheckCircle2 className="size-4 text-ok-600 shrink-0" /> : t.state === "in_progress" ? <CircleDot className="size-4 text-warn-500 shrink-0" /> : <Circle className="size-4 text-line-strong shrink-0" />}
+                <span className="leading-snug">{t.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { requireCtx, hasPerm, type Ctx } from "@/server/auth/session";
 import { fabrikTeam, teamMembers } from "@/server/services/admin";
 import { db } from "@/server/db/store";
 import { ROLE_LABELS } from "@/server/auth/permissions";
-import { AiBadge, Avatar, Badge, Card, CardHeader, DescList, EmptyState, Input, Notice, PageHeader, buttonClass } from "@/components/ui/primitives";
+import { AiBadge, Avatar, Badge, Card, CardHeader, DescList, EmptyState, Input, Notice, PageHeader, buttonClass, PageTabs } from "@/components/ui/primitives";
 import { InviteForm, TeamTable, type MemberView } from "@/components/settings/team";
 import { MfaCard, ProfileForm } from "@/components/settings/profile";
 import { FrequencyForm, RuleToggle, ThresholdsForm } from "@/components/settings/ai";
@@ -35,19 +35,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   return (
     <div className="max-w-[1100px]">
       <PageHeader title="Settings" />
-      <div className="flex items-center gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist" aria-label="Settings sections">
-        {allowed.map((t) => (
-          <Link
-            key={t}
-            href={`/settings?tab=${t}`}
-            role="tab"
-            aria-selected={tab === t}
-            className={cn("relative px-3 h-10 inline-flex items-center gap-2 text-[13.5px] font-medium whitespace-nowrap", tab === t ? "text-ink after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:bg-brand-600 after:rounded" : "text-muted hover:text-ink")}
-          >
-            {TAB_LABELS[t]}
-          </Link>
-        ))}
-      </div>
+      <PageTabs className="mb-5" label="Settings sections" tabs={allowed.map((t) => ({ href: `/settings?tab=${t}`, label: TAB_LABELS[t], active: tab === t }))} />
       {tab === "team" && <TeamTab ctx={ctx} />}
       {tab === "profile" && <ProfileTab ctx={ctx} />}
       {tab === "ai" && <AiTab ctx={ctx} />}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Circle, CircleDot, FileBarChart } from "lucide-react";
 import { requireCtx, hasPerm } from "@/server/auth/session";
 import { closeStatus, ensureClosePeriods, periodLabel, periodRange } from "@/server/services/close";
-import { Badge, Card, CardHeader, LinkButton, PageHeader, StatusPill } from "@/components/ui/primitives";
+import { Badge, Card, CardHeader, LinkButton, PageHeader, StatusPill, PageTabs, ProgressBar, buttonClass } from "@/components/ui/primitives";
 import { CloseActions } from "@/components/close/close-actions";
 import { prettyDateTime, today } from "@/lib/dates";
 import { cn } from "@/lib/cn";
@@ -23,13 +23,7 @@ export default async function ClosePage({ searchParams }: { searchParams: Promis
         title="Monthly Close"
         actions={<LinkButton href={`/close/${cp.period}/package`} variant="secondary"><FileBarChart className="size-4" /> Finance package</LinkButton>}
       />
-      <div className="flex gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist" aria-label="Period">
-        {periods.map((p) => (
-          <Link key={p.id} href={`/close?period=${p.period}`} role="tab" aria-selected={p.id === cp.id} className={cn("relative px-3 h-10 inline-flex items-center text-[13.5px] font-medium whitespace-nowrap", p.id === cp.id ? "text-ink after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:bg-brand-600 after:rounded" : "text-muted hover:text-ink")}>
-            {periodLabel(p.period)}
-          </Link>
-        ))}
-      </div>
+      <PageTabs className="mb-5" label="Period" tabs={periods.map((p) => ({ href: `/close?period=${p.period}`, label: periodLabel(p.period), active: p.id === cp.id }))} />
       <div className="space-y-5">
           <Card>
             <div className="px-5 py-5 flex flex-col sm:flex-row sm:items-center gap-5">
@@ -41,6 +35,7 @@ export default async function ClosePage({ searchParams }: { searchParams: Promis
                 <div className="text-[13px] text-muted mt-1">
                   {cp.status === "closed" ? `Closed ${prettyDateTime(cp.closedAt!)}` : `${s.done} of ${s.total} steps complete`}
                 </div>
+                <ProgressBar value={s.done / s.total} tone={cp.status === "closed" ? "ok" : "brand"} label="Close progress" className="mt-3 max-w-md" />
               </div>
               <CloseActions period={cp.period} status={cp.status} bookkeeperDone={Boolean(cp.manual.bookkeeper_review?.done)} ready={s.readyForApproval} blocking={s.blocking.map((b) => b.label)} canWork={hasPerm(ctx, "close:work")} canApprove={hasPerm(ctx, "close:approve")} />
             </div>
@@ -50,8 +45,11 @@ export default async function ClosePage({ searchParams }: { searchParams: Promis
             <CardHeader title="Close checklist" />
             <ol className="px-5 pb-4">
               {s.tasks.map((t, i) => (
-                <li key={t.key} className="flex items-start gap-3 py-3 border-t border-line first:border-0">
-                  {t.state === "done" ? <CheckCircle2 className="size-5 text-ok-600 shrink-0" /> : t.state === "in_progress" ? <CircleDot className="size-5 text-warn-500 shrink-0" /> : <Circle className="size-5 text-line-strong shrink-0" />}
+                <li key={t.key} className={cn("relative flex items-start gap-3.5 py-3 pl-1 pr-2 -mx-1 rounded-xl transition-colors", t.state === "in_progress" && "bg-warn-50/50")}>
+                  {i < s.tasks.length - 1 && <span className={cn("absolute left-[14.5px] top-[38px] bottom-[-10px] w-px", t.state === "done" ? "bg-ok-600/40" : "bg-line-strong")} aria-hidden />}
+                  <span className={cn("relative z-[1] mt-0.5 size-6 rounded-full flex items-center justify-center shrink-0 ring-4 ring-surface", t.state === "done" ? "bg-ok-50" : t.state === "in_progress" ? "bg-warn-50" : "bg-surface")}>
+                    {t.state === "done" ? <CheckCircle2 className="size-5 text-ok-600" /> : t.state === "in_progress" ? <CircleDot className="size-5 text-warn-500" /> : <Circle className="size-5 text-line-strong" />}
+                  </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[14px] font-medium">{i + 1}. {t.label}</span>
@@ -64,7 +62,7 @@ export default async function ClosePage({ searchParams }: { searchParams: Promis
                     </div>
                   </div>
                   {t.href && t.state !== "done" && (
-                    <Link href={t.href} className="text-[12.5px] text-brand-700 font-medium hover:underline inline-flex items-center gap-1 shrink-0">Go <ArrowRight className="size-3" /></Link>
+                    <Link href={t.href} className={buttonClass("secondary", "sm", "shrink-0 self-center")}>Go <ArrowRight className="size-3.5" /></Link>
                   )}
                 </li>
               ))}

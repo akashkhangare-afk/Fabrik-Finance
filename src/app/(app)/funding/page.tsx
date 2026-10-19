@@ -50,7 +50,7 @@ export default async function FundingPage({ searchParams }: { searchParams: Prom
             <h2 className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted mb-3">{MATCH_LABELS[g]} · {list.length}</h2>
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
               {list.map(({ program: p, match: m, watch }) => (
-                <Link key={p.id} href={`/funding/${p.id}`} className={cn("bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] p-4 flex flex-col hover:border-line-strong hover:shadow-[0_4px_16px_-6px_rgba(22,26,23,.12)] transition", g === "unlikely" && "opacity-75")}>
+                <Link key={p.id} href={`/funding/${p.id}`} className={cn("bg-surface border border-line rounded-[var(--radius-card)] shadow-[var(--shadow-card)] p-5 flex flex-col transition-[border-color,box-shadow,transform] duration-200 hover:border-line-strong hover:shadow-[var(--shadow-raised)] hover:-translate-y-0.5", g === "unlikely" && "opacity-75")}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">{p.agency}</div>
                     <div className="text-right shrink-0">

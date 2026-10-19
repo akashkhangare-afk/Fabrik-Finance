@@ -1,14 +1,12 @@
-import Link from "next/link";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { requireCtx, hasPerm } from "@/server/auth/session";
 import { db } from "@/server/db/store";
 import { listTransactions, accountName, type TxnFilters } from "@/server/services/transactions";
 import { buildReport, normalizeParams } from "@/server/services/reports";
-import { PageHeader, Card, Badge, LinkButton, buttonClass } from "@/components/ui/primitives";
+import { PageHeader, Card, Badge, LinkButton, buttonClass, PageTabs } from "@/components/ui/primitives";
 import { TxnTable, type TxnRow } from "@/components/books/txn-table";
 import { TxnFiltersBar } from "@/components/books/filters";
 import { ReportTable, ReportControls } from "@/components/books/report";
-import { cn } from "@/lib/cn";
 import { prettyDateTime } from "@/lib/dates";
 import { showExtras } from "@/server/config";
 
@@ -33,13 +31,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
         title="Books"
         badge={<Badge tone="neutral">QuickBooks Online · synced {conn?.lastSyncAt ? prettyDateTime(conn.lastSyncAt) : "—"}</Badge>}
       />
-      <div className="flex items-center gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist">
-        {tabs.map((t) => (
-          <Link key={t.key} href={`/books${t.key === "transactions" ? "" : `?tab=${t.key}`}`} role="tab" aria-selected={tab === t.key} className={cn("relative px-3 h-10 inline-flex items-center text-[13.5px] font-medium", tab === t.key ? "text-ink after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:bg-brand-600 after:rounded" : "text-muted hover:text-ink")}>
-            {t.label}
-          </Link>
-        ))}
-      </div>
+      <PageTabs className="mb-5" tabs={tabs.map((t) => ({ href: `/books${t.key === "transactions" ? "" : `?tab=${t.key}`}`, label: t.label, active: tab === t.key }))} />
       {tab === "transactions" && <TransactionsTab sp={sp} />}
       {tab === "reports" && <ReportsTab sp={sp} />}
       {tab === "rules" && <RulesTab />}

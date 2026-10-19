@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate } from "@/lib/dates";
 import { decideBill } from "@/app/actions/app";
-import { Button, Card, EmptyState, StatusPill } from "@/components/ui/primitives";
+import { Button, Card, EmptyState, StatusPill, pillListClass, pillClass, pillCountClass } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/client";
 
 interface Row {
@@ -43,12 +43,14 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
     });
   return (
     <Card className="overflow-hidden">
-      <div className="flex gap-1 px-4 pt-3 pb-2 overflow-x-auto" role="tablist">
-        {TABS.map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cn("h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap", tab === k ? "bg-ink text-white" : "text-ink-2 hover:bg-sunken")}>
-            {l} <span className={cn("ml-1 text-[11.5px] tabular", tab === k ? "text-white/70" : "text-muted")}>{bills.filter((b) => inTab(k, b)).length}</span>
-          </button>
-        ))}
+      <div className="px-4 pt-4 pb-3">
+        <div className={pillListClass} role="tablist">
+          {TABS.map(([k, l]) => (
+            <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={pillClass(tab === k)}>
+              {l} <span className={pillCountClass(tab === k)}>{bills.filter((b) => inTab(k, b)).length}</span>
+            </button>
+          ))}
+        </div>
       </div>
       {rows.length === 0 ? (
         <EmptyState title="No bills here" />

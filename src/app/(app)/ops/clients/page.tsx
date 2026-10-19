@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { requireCtx } from "@/server/auth/session";
 import { opsDashboard } from "@/server/services/ops";
-import { Badge, Card, EmptyState, PageHeader, StatusPill } from "@/components/ui/primitives";
+import { Badge, Card, EmptyState, PageHeader, StatusPill, PageTabs } from "@/components/ui/primitives";
 import { ClientActions } from "@/components/ops/org-nav";
 import { StaffOnly, TableWrap, td, tdNum, th, thNum, tr } from "@/components/ops/shared";
 import { monthLabel } from "@/lib/dates";
@@ -33,14 +32,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     <div className="space-y-5">
       <PageHeader title="Clients" />
 
-      <div className="flex items-center gap-1 border-b border-line overflow-x-auto" role="tablist" aria-label="Filter by health">
-        {TABS.map((t) => (
-          <Link key={t.key} href={t.key ? `/ops/clients?health=${t.key}` : "/ops/clients"} role="tab" aria-selected={health === t.key} className={cn("relative px-3 h-10 inline-flex items-center gap-2 text-[13.5px] font-medium whitespace-nowrap", health === t.key ? "text-ink after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:bg-brand-600 after:rounded" : "text-muted hover:text-ink")}>
-            {t.label}
-            <span className="min-w-5 h-5 px-1.5 rounded-full bg-sunken text-[11px] tabular flex items-center justify-center">{tally[t.key]}</span>
-          </Link>
-        ))}
-      </div>
+      <PageTabs className="mb-0" label="Filter by health" tabs={TABS.map((t) => ({ href: t.key ? `/ops/clients?health=${t.key}` : "/ops/clients", label: t.label, active: health === t.key, count: tally[t.key] }))} />
 
       <Card>
         {rows.length === 0 ? (
