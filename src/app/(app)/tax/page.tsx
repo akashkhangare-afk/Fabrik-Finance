@@ -1,10 +1,11 @@
-import { CalendarClock, ExternalLink, FileStack, FlaskConical, Info, UserRound } from "lucide-react";
+import { notFound } from "next/navigation";
+import { CalendarClock, ExternalLink, FileStack, Info, UserRound } from "lucide-react";
 import { requireCtx, hasPerm } from "@/server/auth/session";
+import { showExtras } from "@/server/config";
 import { taxWorkspace } from "@/server/services/admin";
 import { db } from "@/server/db/store";
 import { Avatar, Badge, Card, CardHeader, ClassBadge, EmptyState, Notice, PageHeader, ProgressRing, type Tone } from "@/components/ui/primitives";
 import { TaxRequests, type TaxRequestView } from "@/components/tax/tax-requests";
-import { RdScreener } from "@/components/tax/rd-screener";
 import { prettyDate, prettyDateTime } from "@/lib/dates";
 import { plural } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -29,7 +30,9 @@ function relDays(n: number) {
   return `${Math.abs(n)} days ago`;
 }
 
+/** Out of scope for the PRD (G§28, E§31): kept behind SHOW_EXTRAS. */
 export default async function TaxPage() {
+  if (!showExtras()) notFound();
   const ctx = await requireCtx();
   const ws = taxWorkspace(ctx);
   const data = db();
@@ -170,22 +173,6 @@ export default async function TaxPage() {
         ) : (
           <TaxRequests requests={requests} documents={documents} canAct={canAct} isCpa={isCpa} isStaff={ctx.isStaff} isClientApprover={isClientApprover} />
         )}
-      </Card>
-
-      {/* (d) R&D screener */}
-      <Card>
-        <CardHeader
-          title={
-            <span className="inline-flex items-center gap-2 flex-wrap">
-              R&amp;D tax credit screener <ClassBadge cls="C" />
-            </span>
-          }
-          subtitle="Five quick questions to see whether your field work may qualify. Indicators only — a specialist confirms eligibility."
-          icon={<FlaskConical className="size-4" />}
-        />
-        <div className="px-5 pb-5">
-          <RdScreener canRun={canAct} />
-        </div>
       </Card>
     </div>
   );

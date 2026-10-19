@@ -345,10 +345,6 @@ export async function taxRequestStatus(id: ID, status: TaxDocumentRequest["statu
   return r;
 }
 
-export async function rdScreen(a: admin.RdAnswers) {
-  return run("tax:read", () => admin.rdScreener(a));
-}
-
 // ─── Operations ────────────────────────────────────────────────────────────
 
 export async function updateWork(id: ID, patch: { status?: WorkItem["status"]; assigneeId?: ID }) {
