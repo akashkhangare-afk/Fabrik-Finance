@@ -97,14 +97,12 @@ export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outst
       </Card>
 
       {!approved && (exceptions.length > 0 || s.duplicateBook.length > 0 || s.unreconciledBook.length > 0) && (
-        <Notice tone="ai" icon={<Sparkles className="size-4" />} title="AI-assisted matching">
-          Fabrik matched {s.matched} statement lines to the books automatically. The items below need a person: statement lines with no book entry, book entries that look duplicated, and book entries not yet on the statement.
-        </Notice>
+        <Notice tone="ai" icon={<Sparkles className="size-4" />}>Fabrik auto-matched {s.matched} lines.</Notice>
       )}
 
       {exceptions.length > 0 && (
         <Card>
-          <CardHeader title="Statement lines without a match" subtitle="On the bank statement, but not (yet) in the books" />
+          <CardHeader title="Statement lines without a match" />
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <tbody>
@@ -119,21 +117,21 @@ export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outst
 
       {s.duplicateBook.length > 0 && (
         <Card>
-          <CardHeader title="Possible duplicates in the books" subtitle="Recorded twice in QuickBooks but once on the statement" icon={<Copy className="size-4" />} />
-          <BookTable items={s.duplicateBook} action={editable ? (i) => <Button size="sm" variant="primary" disabled={pending} onClick={() => act({ kind: "book", txnId: i.transactionId, action: "duplicate" })}>Exclude duplicate</Button> : undefined} />
+          <CardHeader title="Possible duplicates in the books" icon={<Copy className="size-4" />} />
+          <BookTable items={s.duplicateBook} action={editable ? (i) => <Button size="sm" disabled={pending} onClick={() => act({ kind: "book", txnId: i.transactionId, action: "duplicate" })}>Exclude duplicate</Button> : undefined} />
         </Card>
       )}
 
       {s.unreconciledBook.length > 0 && (
         <Card>
-          <CardHeader title="In the books, not on this statement" subtitle="Usually checks or payments that clear next month (outstanding items)" icon={<Clock className="size-4" />} />
+          <CardHeader title="In the books, not on this statement" icon={<Clock className="size-4" />} />
           <BookTable items={s.unreconciledBook} action={editable ? (i) => <Button size="sm" disabled={pending} onClick={() => act({ kind: "book", txnId: i.transactionId, action: "outstanding" })}>Mark outstanding</Button> : undefined} />
         </Card>
       )}
 
       {outstanding.length > 0 && (
         <Card>
-          <CardHeader title="Outstanding items" subtitle="Reconciling items carried to next month" />
+          <CardHeader title="Outstanding items" />
           <BookTable items={outstanding} action={editable ? (i) => <Button size="sm" variant="ghost" disabled={pending} onClick={() => act({ kind: "book", txnId: i.transactionId, action: "clear" })}>Undo</Button> : undefined} />
         </Card>
       )}
@@ -141,7 +139,6 @@ export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outst
       <Card>
         <CardHeader
           title={`Matched lines (${matched.length})`}
-          subtitle={`Opening statement balance ${bal(startBalance)}`}
           action={<Button size="sm" variant="ghost" onClick={() => setShowMatched((x) => !x)}>{showMatched ? "Hide" : "Show"}</Button>}
         />
         {showMatched && (
@@ -167,7 +164,7 @@ export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outst
         onClose={() => setConfirm(false)}
         onConfirm={() => { setConfirm(false); act({ kind: "approve" }); }}
         title="Approve this reconciliation?"
-        description={`Statement balance ${bal(s.statementBalance)} agrees with the books after outstanding items. The difference is ${money(s.difference, { decimals: true })}. Approval is recorded in the audit trail and locks the reconciliation.`}
+        description={`Difference ${money(s.difference, { decimals: true })}. Approval locks the reconciliation.`}
         confirmLabel="Approve"
       />
     </div>
@@ -183,14 +180,13 @@ function ExceptionRow({ line, accounts, editable, pending, onAct }: { line: Stat
       <td className="px-3 py-3">
         <div className="font-mono text-[12.5px]">{line.description}</div>
         {line.state === "suggested" && <div className="mt-1"><AiBadge label={`Suggested match · ${Math.round((line.confidence ?? 0) * 100)}%`} /></div>}
-        {line.state === "unmatched" && guess && <div className="mt-1 text-[12px] text-ai-600 flex items-center gap-1"><Sparkles className="size-3" /> Looks like a bank-only item — record it in the books</div>}
       </td>
       <td className="px-3 py-3 text-right tabular whitespace-nowrap font-medium">{money(line.amount, { decimals: true })}</td>
       <td className="px-5 py-3">
         {editable ? (
           line.state === "suggested" ? (
             <div className="flex gap-2 justify-end">
-              <Button size="sm" variant="primary" disabled={pending} onClick={() => onAct({ kind: "accept", lineId: line.id })}>Accept</Button>
+              <Button size="sm" disabled={pending} onClick={() => onAct({ kind: "accept", lineId: line.id })}>Accept</Button>
               <Button size="sm" variant="ghost" disabled={pending} onClick={() => onAct({ kind: "unmatch", lineId: line.id })}>Reject</Button>
             </div>
           ) : (
@@ -199,7 +195,7 @@ function ExceptionRow({ line, accounts, editable, pending, onAct }: { line: Stat
                 <option value="">Record as…</option>
                 {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </Select>
-              <Button size="sm" variant="primary" disabled={!acct || pending} onClick={() => onAct({ kind: "create", lineId: line.id, accountId: acct })}>Record</Button>
+              <Button size="sm" disabled={!acct || pending} onClick={() => onAct({ kind: "create", lineId: line.id, accountId: acct })}>Record</Button>
             </div>
           )
         ) : (

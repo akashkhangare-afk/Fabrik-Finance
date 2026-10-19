@@ -18,7 +18,7 @@ export default async function ReconciliationPage({ searchParams }: { searchParam
   const periods = [0, -1, -2].map((o) => addMonths(last, o));
   return (
     <div>
-      <PageHeader title="Reconciliation" description="Fabrik matches every statement line to the books. A person resolves exceptions and approves the final reconciliation." />
+      <PageHeader title="Reconciliation" />
       <div className="flex gap-1 mb-5">
         {periods.map((p) => (
           <Link key={p} href={`/reconciliation?period=${p}`} className={cn("h-8 px-3 rounded-lg text-[13px] font-medium inline-flex items-center", p === period ? "bg-ink text-white" : "text-ink-2 hover:bg-sunken")}>{periodLabel(p)}</Link>
