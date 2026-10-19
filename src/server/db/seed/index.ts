@@ -9,7 +9,7 @@ import { seedSmithRules, seedSmithWorkflow } from "./smith-workflow";
 import { seedPortfolio } from "./portfolio";
 import { processTransactions } from "./process";
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 export function emptyDb(): DB {
   return {
