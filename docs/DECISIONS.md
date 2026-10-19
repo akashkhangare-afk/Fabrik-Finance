@@ -9,7 +9,7 @@
 | `What exactly is Fondo.com.pdf` | Read. Background on Fondo's bookkeeping + tax + R&D credit model. |
 | Interactive prototype (claude.ai design link in the PRD) | **Not available** in the repository and not reachable from this environment. Not used; the design follows the brief's design direction. |
 
-## Conflicts between sources (also in-app at `/ops/requirements`)
+## Conflicts between sources (also in-app at `/ops/requirements` when `SHOW_EXTRAS=true`)
 
 | ID | Conflict | Resolution |
 |---|---|---|

@@ -29,7 +29,7 @@ test.describe.configure({ mode: "serial" });
 
 test("1 · Home: cash, revenue, profit, receivables, bills and the AI Finance Brief", async ({ page }) => {
   await signIn(page, "dan@smithfamilyfarms.example");
-  await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), Dan/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
   for (const [label, value] of [["Cash", "$482K"], ["Revenue YTD", "$3.8M"], ["Expenses YTD", "$3.18M"], ["Net income YTD", "$620K"], ["Receivables", "$310K"], ["Upcoming bills", "$184K"]]) {
     await expect(page.locator("a", { hasText: label }).filter({ hasText: value }).first()).toBeVisible();
   }
@@ -110,9 +110,17 @@ test("Access control: clients can't open the Operations Portal; APIs require a s
   await expect(page.getByText(/Fabrik staff only/i)).toBeVisible();
 });
 
+test("Screens outside the PRD are hidden unless SHOW_EXTRAS is on", async ({ page }) => {
+  await signIn(page, "dan@smithfamilyfarms.example");
+  await expect(page.getByRole("link", { name: "Tax & Credits" })).toHaveCount(0);
+  expect((await page.goto("/tax"))?.status()).toBe(404);
+});
+
 test("Operations: admin signs in with MFA and sees the portfolio", async ({ page }) => {
   await signIn(page, "priya.nair@fabrik.example");
   await page.goto("/ops");
   await expect(page.getByRole("heading", { name: "Fabrik Operations" })).toBeVisible();
   await expect(page.getByText(/Human minutes per client per month/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Requirements" })).toHaveCount(0);
+  expect((await page.goto("/ops/requirements"))?.status()).toBe(404);
 });

@@ -20,7 +20,7 @@ Before you start: `npm run dev`, or reset the demo from **Operations → Adminis
 - "Possible transaction: JOHN DEERE FINANCIAL $14,820 — match confidence 99%." Click **Match** → the invoice clears the review flag and the transaction finalizes; the Inbox request disappears.
 
 ### 4 · CFO (1–2 min)
-- Open **CFO → 13-week cash forecast**: known amounts solid, estimated hatched; expand a week to see each bill, payroll run and collection with its source; adjust *seasonal sales*.
+- Open **CFO → 13-week cash forecast**: known amounts solid, estimated hatched; expand a week to see each bill, payroll run and collection with its source; open **Assumptions** to show what the forecast is based on.
 - Click **Ask Fabrik** (bottom right): *"Can we afford to purchase another $1 million of farmland?"* → verdict, cash low point, debt-to-assets and debt-service coverage, assumptions. **Open this scenario in CFO** to adjust down payment or rate.
 
 ### 5 · Funding (1–2 min)
@@ -32,6 +32,6 @@ Before you start: `npm run dev`, or reset the demo from **Operations → Adminis
 - Then: *"What documents do we already have for these applications?"* — Fabrik answers from **Funding + Books + Documents**, with readiness per program.
 
 ### Optional · Behind the scenes (Operations Portal)
-Sign in as **Sarah Chen** (bookkeeper) → **AI Review Queue**: uncertain items only, approve with **A**, change with **C**, ask the client with **Q**, bulk approve. Sign in as **Marcus Reed** → **Reconciliation → Chase ••••1245 (September)**: record the bank fees, exclude the duplicate MidAmerican charge, mark the outstanding check → difference $0 → approve → **Monthly Close → Approve & close books** → the **Finance Package** is generated. The **Operations** dashboard shows the north star: *human minutes per client per month*.
+Sign in as **Sarah Chen** (bookkeeper) → **AI Review Queue**: uncertain items only — **Approve**, **Change** or **Ask client**, or select several and bulk approve. Sign in as **Marcus Reed** → **Reconciliation → Chase ••••1245 (September)**: record the bank fees, exclude the duplicate MidAmerican charge, mark the outstanding check → difference $0 → approve → **Monthly Close → Approve & close books** → the **Finance Package** is generated. The **Operations** dashboard shows the north star: *human minutes per client per month*.
 
 Talking points: QuickBooks stays the ledger · AI does routine work, people handle exceptions · every number is traceable · funding sources are official and matches are never promises · Ask Fabrik is read-only.
