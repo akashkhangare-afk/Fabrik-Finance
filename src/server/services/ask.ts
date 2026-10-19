@@ -14,6 +14,7 @@ import { fundingMatches, getProfile, readinessContext } from "./funding";
 import { accountName } from "./transactions";
 import { currentClose, periodLabel } from "./close";
 import { recordAudit } from "./audit";
+import { showExtras } from "@/server/config";
 import { phrase } from "@/server/ai/gateway";
 import type { Ctx } from "@/server/auth/session";
 import { SUBTYPES, subtypeMeta } from "@/server/domain/coa";
@@ -160,7 +161,6 @@ function route(ctx: Ctx, q: string, thread: AskThread): AskAnswer {
       modules: [],
       refused: true,
       summary: "I can't do that — Ask Fabrik is read-only in this release, so it never moves money, pays bills or changes records. I can show you the information you need to do it yourself.",
-      links: [{ label: "Open Bills", href: "/bills" }, { label: "Open Collect", href: "/collect" }],
       sources: [],
       followUps: ["Which bills are due this month?", "What is our current cash position?"],
       grounding: "grounded",
@@ -178,7 +178,7 @@ function route(ctx: Ctx, q: string, thread: AskThread): AskAnswer {
   if (/why did (profit|net income|earnings)/.test(q)) return profitVariance(ctx);
   if (/why (did|have|are) (expenses|costs|spending)/.test(q)) return expenseVariance(ctx, q);
   if (/compare revenue|revenue.*(compare|vs|versus|last quarter|previous quarter)/.test(q)) return revenueCompare(ctx);
-  if (/books? (status|closed|ready)|monthly close|close status/.test(q)) return booksStatus(ctx);
+  if (showExtras() && /books? (status|closed|ready)|monthly close|close status/.test(q)) return booksStatus(ctx);
   const vendor = /(pay|paid|payments?|spend|spent|transactions?)\b/.test(q) ? findVendor(orgId, q) : undefined;
   if (vendor && /(payments? to|paid|pay|show)/.test(q) && !CATEGORY_SYNONYMS.some(([re]) => re.test(q) && !q.includes(vendor.name.toLowerCase()))) return vendorPayments(ctx, vendor, q);
   if (/(spend|spent|cost|expenses?|pay|paid)/.test(q)) return categorySpend(ctx, q);
@@ -488,7 +488,7 @@ function affordability(ctx: Ctx, q: string): AskAnswer {
       { label: "Debt service coverage", value: r.scenario.dscr ? `${r.scenario.dscr.toFixed(2)}×` : "—" },
     ],
     table: { caption: "Assumptions used", columns: [{ key: "a", label: "Assumption" }, { key: "v", label: "Value" }], rows: r.assumptions.map((a) => ({ a: a.label, v: a.value })), href: `/cfo?${params}` },
-    links: [{ label: "Open this scenario in CFO", href: `/cfo?${params}` }, { label: "Funding that may help", href: "/funding" }],
+    links: [{ label: "Open this scenario in CFO", href: `/cfo?${params}` }],
     sources: [sourceAccounting(ctx.org.id), { kind: "forecast", label: "13-week cash forecast" }, { kind: "scenario", label: `Scenario: ${r.title}`, detail: "Edit the assumptions in CFO", href: `/cfo?${params}` }],
     followUps: ["What government programs could potentially help Smith Family Farms expand?", "What is our current cash position?"],
     grounding: "grounded",
@@ -530,10 +530,18 @@ function fundingDocuments(ctx: Ctx, thread: AskThread): AskAnswer {
   const rctx = readinessContext(ctx.org.id);
   const docs = db().documents.filter((d) => d.orgId === ctx.org.id && d.tags.some((t) => t.startsWith("funding:")));
   const reads = programs.map((m) => ({ m, r: readiness(m.program, profile, rctx) }));
+  const acres = (profile.acresOwned ?? 0) + (profile.acresRented ?? 0);
+  const profileParts = [
+    "entity",
+    profile.owners.length ? `ownership (${profile.owners.map((o) => o.pct).join("/")})` : undefined,
+    acres ? `${acres.toLocaleString("en-US")} acres` : undefined,
+    profile.crops.length ? "crops" : undefined,
+    profile.equipment.length ? "equipment" : undefined,
+  ].filter(Boolean) as string[];
   const have = [
     ...(rctx.booksClosedThrough ? [`Profit & Loss, Balance Sheet and Cash Flow (books closed through ${periodLabel(rctx.booksClosedThrough)})`] : []),
     ...docs.map((d) => d.filename.replace(/_/g, " ").replace(/\.pdf$/i, "")),
-    "Farm profile: entity, ownership (60/40), 2,400 acres, crops and equipment",
+    `Farm profile: ${profileParts.length > 1 ? `${profileParts.slice(0, -1).join(", ")} and ${profileParts.at(-1)}` : profileParts[0]}`,
   ];
   const missing = [...new Set(reads.flatMap(({ r }) => r.items.filter((i) => !i.done).map((i) => (i.key === "additional" ? i.detail : i.label))))];
   return {

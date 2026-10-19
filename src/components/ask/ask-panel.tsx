@@ -132,14 +132,13 @@ export function AnswerView({ a, onFollowUp }: { a: AskAnswer; onFollowUp?: (q: s
       )}
       {a.followUps && onFollowUp && (
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {a.followUps.slice(0, 3).map((f) => (
+          {a.followUps.slice(0, 1).map((f) => (
             <button key={f} onClick={() => onFollowUp(f)} className="text-left text-[12.5px] px-2.5 py-1.5 rounded-lg border border-ai-100 bg-ai-50/50 text-ai-700 hover:bg-ai-50">
               {f}
             </button>
           ))}
         </div>
       )}
-      {a.phrasedBy && <div className="text-[11px] text-subtle">Wording by {a.phrasedBy}; figures computed by Fabrik.</div>}
     </div>
   );
 }
@@ -186,7 +185,6 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
               <Sparkles className="size-5" />
             </div>
             <h3 className="mt-3 text-[17px] font-semibold">Ask anything about {orgName ?? "your finances"}</h3>
-            <p className="text-[13px] text-muted mt-1">Fabrik routes your question to Books, Bills, Collect, Funding, CFO or Documents and shows the data behind every answer. Read-only — it never moves money.</p>
             <div className={cn("mt-5 grid gap-2", compact ? "" : "sm:grid-cols-2")}>
               {STARTERS.slice(0, compact ? 5 : 8).map((s) => (
                 <button key={s} onClick={() => send(s)} className="text-left text-[13px] rounded-xl border border-line bg-surface px-3.5 py-2.5 hover:border-ai-100 hover:bg-ai-50/40 transition">
@@ -251,7 +249,7 @@ export function AskChat({ initialQuestion, compact, orgName }: { initialQuestion
             <ArrowUp className="size-4" />
           </button>
         </div>
-        <p className="text-[11px] text-subtle mt-1.5 px-1">Answers are computed from your QuickBooks data, documents and verified program sources. Funding matches are potential, not confirmed eligibility.</p>
+        <p className="text-[11px] text-subtle mt-1.5 px-1">Funding matches are potential, not confirmed eligibility.</p>
       </form>
     </div>
   );
