@@ -3,5 +3,6 @@
   "framework": "nextjs",
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "fluid": true
 }

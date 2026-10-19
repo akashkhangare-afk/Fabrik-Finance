@@ -16,7 +16,9 @@ const DATA_DIR = path.resolve(
   /*turbopackIgnore: true*/ process.cwd(),
   process.env.FABRIK_DATA_DIR || (process.env.VERCEL ? "/tmp/fabrik-data" : ".data"),
 );
-const PERSIST = process.env.FABRIK_PERSIST !== "false";
+// On Vercel, /tmp lives exactly as long as the instance's memory, so writing the 10 MB file after
+// every change only costs time. Elsewhere the file keeps the demo across server restarts.
+const PERSIST = process.env.FABRIK_PERSIST ? process.env.FABRIK_PERSIST !== "false" : !process.env.VERCEL;
 const FILE = path.join(DATA_DIR, "fabrik-db.json");
 
 declare global {
