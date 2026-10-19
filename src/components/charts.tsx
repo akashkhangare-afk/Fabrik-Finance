@@ -61,12 +61,11 @@ export interface MonthPoint {
 export function RevenueExpenseChart({ series, ranges, defaultRange = "12m", height = 260 }: { series: Record<string, MonthPoint[]>; ranges: { value: string; label: string }[]; defaultRange?: string; height?: number }) {
   const [range, setRange] = useState(defaultRange);
   const data = series[range] ?? [];
-  const totals = data.reduce((t, d) => ({ r: t.r + d.revenue, e: t.e + d.expenses }), { r: 0, e: 0 });
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <Legend items={[{ label: `Revenue · ${moneyCompact(totals.r)}`, color: SERIES.s1 }, { label: `Expenses · ${moneyCompact(totals.e)}`, color: SERIES.s2 }, { label: "Net income", color: SERIES.s3, kind: "line" }]} />
-        <Segmented size="sm" label="Period" value={range} onChange={setRange} options={ranges} />
+        <Legend items={[{ label: "Revenue", color: SERIES.s1 }, { label: "Expenses", color: SERIES.s2 }]} />
+        {ranges.length > 1 && <Segmented size="sm" label="Period" value={range} onChange={setRange} options={ranges} />}
       </div>
       <div style={{ height }} role="img" aria-label={`Revenue and expenses by month, ${ranges.find((r) => r.value === range)?.label}`}>
         <ResponsiveContainer width="100%" height="100%">
@@ -80,12 +79,11 @@ export function RevenueExpenseChart({ series, ranges, defaultRange = "12m", heig
               content={(p: TooltipContentProps<ValueType, NameType>) => {
                 if (!p.active || !p.payload?.length) return null;
                 const d = p.payload[0]!.payload as MonthPoint;
-                return <TooltipShell title={`${d.label}${d.partial ? " (month to date)" : ""}`} rows={[{ label: "Revenue", value: moneyCompact(d.revenue), color: SERIES.s1 }, { label: "Expenses", value: moneyCompact(d.expenses), color: SERIES.s2 }, { label: "Net income", value: moneyCompact(d.net), color: SERIES.s3 }]} />;
+                return <TooltipShell title={`${d.label}${d.partial ? " (month to date)" : ""}`} rows={[{ label: "Revenue", value: moneyCompact(d.revenue), color: SERIES.s1 }, { label: "Expenses", value: moneyCompact(d.expenses), color: SERIES.s2 }]} />;
               }}
             />
             <Bar isAnimationActive={false} dataKey="revenue" fill={SERIES.s1} radius={[4, 4, 0, 0]} maxBarSize={22} />
             <Bar isAnimationActive={false} dataKey="expenses" fill={SERIES.s2} radius={[4, 4, 0, 0]} maxBarSize={22} />
-            <Line isAnimationActive={false} dataKey="net" stroke={SERIES.s3} strokeWidth={2} dot={{ r: 3.5, fill: SERIES.s3, stroke: "#fff", strokeWidth: 2 }} activeDot={{ r: 5, stroke: "#fff", strokeWidth: 2 }} type="monotone" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
