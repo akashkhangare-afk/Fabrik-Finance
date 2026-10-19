@@ -71,16 +71,12 @@ export function transactionDetail(ctx: Ctx, id: ID) {
   const data = db();
   const bank = data.bankAccounts.find((b) => b.id === t.bankAccountId)!;
   const vendor = data.vendors.find((v) => v.id === t.vendorId);
-  const history = t.vendorId
-    ? data.transactions.filter((x) => x.orgId === ctx.org.id && x.vendorId === t.vendorId && x.id !== t.id && x.date <= t.date && (x.status === "approved" || x.status === "processed")).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12)
-    : [];
   return {
     txn: t,
     bank,
     vendor,
     documents: data.documents.filter((d) => t.documentIds.includes(d.id) || d.id === t.ai?.documentMatch?.documentId),
     audit: auditFor(ctx.org.id, t.id),
-    history: history.map((h) => ({ id: h.id, date: h.date, amount: h.amount, account: accountName(h.accountId ?? h.splits?.[0]?.accountId) })),
     duplicateOf: t.ai?.possibleDuplicateOf ? data.transactions.find((x) => x.id === t.ai!.possibleDuplicateOf) : undefined,
     inbox: data.inbox.filter((i) => i.related?.type === "transaction" && i.related.id === t.id),
     rule: t.ai?.evidence.ruleId ? data.rules.find((r) => r.id === t.ai!.evidence.ruleId) : undefined,
