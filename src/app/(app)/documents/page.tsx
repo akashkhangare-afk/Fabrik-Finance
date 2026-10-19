@@ -4,7 +4,7 @@ import { listDocuments } from "@/server/services/documents";
 import { accountName } from "@/server/services/transactions";
 import { PageHeader, Badge } from "@/components/ui/primitives";
 import { DocumentsView, type DocRow } from "@/components/documents/documents-view";
-import { demoMode } from "@/server/config";
+import { demoMode, showExtras } from "@/server/config";
 import { prettyDateTime } from "@/lib/dates";
 
 export const metadata = { title: "Documents" };
@@ -13,7 +13,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   const ctx = await requireCtx();
   const sp = await searchParams;
   const data = db();
-  const groups: Record<string, string[]> = { invoices: ["invoice"], receipts: ["receipt"], statements: ["bank_statement", "credit_card_statement"], records: ["entity_document", "farm_record", "other"], tax: ["tax_document"] };
+  const groups: Record<string, string[]> = { invoices: ["invoice"], receipts: ["receipt"], statements: ["bank_statement", "credit_card_statement"], records: ["entity_document", "farm_record", "other"] };
   const all = listDocuments(ctx, { q: sp.q });
   const docs = sp.kind && groups[sp.kind] ? all.filter((d) => groups[sp.kind!]!.includes(d.kind)) : all;
   const users = new Map(data.users.map((u) => [u.id, u.name]));
@@ -48,10 +48,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     <div>
       <PageHeader
         title="Documents"
-        description="Drop invoices, receipts and statements here. FabrikIDP extracts the key fields and matches each document to its QuickBooks transaction."
         badge={<Badge tone="ai">FabrikIDP</Badge>}
       />
-      <DocumentsView rows={rows} counts={{ all: all.length, ...counts }} kind={sp.kind} q={sp.q} openId={sp.doc} canUpload={hasPerm(ctx, "documents:upload")} canMatch={hasPerm(ctx, "documents:match")} demo={demoMode() && ctx.org.isDemo} expenseAccounts={expenseAccounts} />
+      <DocumentsView rows={rows} counts={{ all: all.length, ...counts }} kind={sp.kind} q={sp.q} openId={sp.doc} canUpload={hasPerm(ctx, "documents:upload")} canMatch={hasPerm(ctx, "documents:match")} demo={demoMode() && ctx.org.isDemo} extras={showExtras()} expenseAccounts={expenseAccounts} />
     </div>
   );
 }
