@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { askAccountant } from "@/app/actions/app";
 import { Button, Textarea } from "@/components/ui/primitives";
@@ -12,7 +11,6 @@ export function AskAccountantButton() {
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   return (
     <>
       <Button onClick={() => setOpen(true)}>
@@ -36,7 +34,6 @@ export function AskAccountantButton() {
                   if (r.ok) {
                     setOpen(false);
                     setText("");
-                    router.refresh();
                   }
                 })
               }

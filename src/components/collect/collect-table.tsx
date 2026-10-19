@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Mail, Sparkles } from "lucide-react";
 import type { CollectionReminder } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -90,7 +89,6 @@ function ReminderDrawer({ inv, onClose, canApprove, demo }: { inv: Row; onClose:
   const [body, setBody] = useState(draft?.body ?? "");
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   useEffect(() => {
     setSubject(draft?.subject ?? "");
     setBody(draft?.body ?? "");
@@ -105,12 +103,11 @@ function ReminderDrawer({ inv, onClose, canApprove, demo }: { inv: Row; onClose:
       footer={
         draft ? (
           <>
-            <Button variant="ghost" disabled={pending} onClick={() => start(async () => { await discardReminder(inv.id, draft.id); router.refresh(); })}>Discard</Button>
+            <Button variant="ghost" disabled={pending} onClick={() => start(async () => { await discardReminder(inv.id, draft.id); })}>Discard</Button>
             {canApprove ? (
               <Button variant="primary" disabled={pending || !subject.trim() || !body.trim()} onClick={() => start(async () => {
                 const r = await approveReminder(inv.id, draft.id, subject, body);
                 toast(r.ok ? { tone: "success", title: r.message ?? "Sent", body: `To ${inv.email ?? inv.customer}` } : { tone: "error", title: r.error });
-                router.refresh();
                 if (r.ok) onClose();
               })}>
                 <Mail className="size-4" /> Approve &amp; send
@@ -129,7 +126,6 @@ function ReminderDrawer({ inv, onClose, canApprove, demo }: { inv: Row; onClose:
           <Button variant="ai" className="mt-5" disabled={pending} onClick={() => start(async () => {
             const r = await draftReminder(inv.id);
             if (!r.ok) toast({ tone: "error", title: r.error });
-            router.refresh();
           })}>
             {pending ? "Drafting…" : "Generate reminder"}
           </Button>

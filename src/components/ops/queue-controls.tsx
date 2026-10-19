@@ -63,7 +63,6 @@ const STATUS_OPTS: { value: WorkItem["status"]; label: string }[] = [
 ];
 
 function useWorkSave(id: string, title: string) {
-  const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
   const save = (patch: { status?: WorkItem["status"]; assigneeId?: string }) =>
@@ -71,7 +70,6 @@ function useWorkSave(id: string, title: string) {
       const r = await updateWork(id, patch);
       if (r.ok) toast({ tone: "success", title: r.message ?? "Updated", body: title });
       else toast({ tone: "error", title: r.error });
-      router.refresh();
     });
   return { pending, save };
 }

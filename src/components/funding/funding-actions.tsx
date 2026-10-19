@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Bookmark, ClipboardCheck, EyeOff, ShieldCheck } from "lucide-react";
 import type { FundingWatch } from "@/lib/types";
 import { watchProgram } from "@/app/actions/app";
@@ -11,12 +10,10 @@ import { useToast } from "@/components/ui/client";
 export function FundingActions({ programId, status, extras }: { programId: string; status?: FundingWatch["status"]; extras: boolean }) {
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   const set = (s: FundingWatch["status"]) =>
     start(async () => {
       const r = await watchProgram(programId, s);
       toast(r.ok ? { tone: "success", title: r.message ?? "Saved" } : { tone: "error", title: r.error });
-      router.refresh();
     });
   return (
     <div className="space-y-3">

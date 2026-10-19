@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ExternalLink, FileImage, FileText, Search, Sparkles, Upload, X } from "lucide-react";
 import type { DocumentKind, ExtractionResult } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -121,7 +120,6 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
   const [pending, start] = useTransition();
   const [kind, setKind] = useState("other");
   const toast = useToast();
-  const router = useRouter();
   const send = (files: FileList | File[]) => {
     const fd = new FormData();
     for (const f of Array.from(files)) fd.append("files", f);
@@ -129,7 +127,6 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
     start(async () => {
       const r = await uploadDocuments(fd);
       toast(r.ok ? { tone: "success", title: r.message ?? "Uploaded" } : { tone: "error", title: r.error });
-      router.refresh();
       if (r.ok && r.data?.length === 1) onUploaded(r.data[0]!.id);
     });
   };
@@ -161,7 +158,6 @@ function UploadZone({ demo, onUploaded }: { demo: boolean; onUploaded: (id: stri
           <Button disabled={pending} onClick={() => start(async () => {
             const r = await uploadSampleInvoice();
             toast(r.ok ? { tone: "success", title: r.message ?? "Uploaded" } : { tone: "error", title: r.error });
-            router.refresh();
             if (r.ok) onUploaded(r.data!.id);
           })}>
             <Sparkles className="size-4" /> Sample John Deere invoice
@@ -179,13 +175,11 @@ function DocDrawer({ doc, onClose, canMatch, canUpload, demo, expenseAccounts }:
   const [editing, setEditing] = useState(false);
   const [billAcct, setBillAcct] = useState("");
   const toast = useToast();
-  const router = useRouter();
   useEffect(() => setEditing(doc?.status === "needs_review"), [doc?.id, doc?.status]);
   const act = (fn: () => Promise<{ ok: boolean; message?: string; error?: string }>) =>
     start(async () => {
       const r = await fn();
       toast(r.ok ? { tone: "success", title: r.message ?? "Done" } : { tone: "error", title: r.error ?? "Failed" });
-      router.refresh();
     });
   if (!doc) return <Drawer open={false} onClose={onClose} title="">{null}</Drawer>;
   const e = doc.extraction;
@@ -312,7 +306,6 @@ function FieldEditor({ doc, onDone }: { doc: DocRow; onDone: () => void }) {
   const [v, setV] = useState({ vendor: e?.vendor ?? "", documentNumber: e?.documentNumber ?? "", documentDate: e?.documentDate ?? "", dueDate: e?.dueDate ?? "", total: e?.total != null ? String(e.total / 100) : "", kind: doc.kind });
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   return (
     <section className="rounded-xl border border-line p-4 space-y-3">
       <h3 className="text-[13px] font-semibold">Confirm the key fields</h3>
@@ -342,7 +335,6 @@ function FieldEditor({ doc, onDone }: { doc: DocRow; onDone: () => void }) {
               const r = await correctDocFields(doc.id, { vendor: v.vendor || undefined, documentNumber: v.documentNumber || undefined, documentDate: v.documentDate || undefined, dueDate: v.dueDate || undefined, total: Number.isFinite(total) ? total : undefined, kind: v.kind });
               toast(r.ok ? { tone: "success", title: r.message ?? "Saved" } : { tone: "error", title: r.error });
               if (r.ok) onDone();
-              router.refresh();
             })
           }
         >

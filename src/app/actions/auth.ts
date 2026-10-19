@@ -112,6 +112,7 @@ export async function switchOrg(orgId: string): Promise<ActionResult> {
   await writeSessionCookie(ctx.session);
   recordAudit(ctx, { orgId, action: "auth.organization_switched", entity: { type: "organization", id: orgId } });
   commit();
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -134,6 +135,7 @@ export async function confirmMfaEnrollment(code: string): Promise<ActionResult> 
   ctx.user.mfaEnabled = true;
   recordAudit(ctx, { orgId: ctx.org.id, action: "auth.mfa_enabled", entity: { type: "user", id: ctx.user.id, label: ctx.user.email } });
   commit();
+  revalidatePath("/", "layout");
   return { ok: true, message: "Two-factor authentication is on." };
 }
 
@@ -145,6 +147,7 @@ export async function disableMfa(code: string): Promise<ActionResult> {
   ctx.user.mfaSecretEnc = undefined;
   recordAudit(ctx, { orgId: ctx.org.id, action: "auth.mfa_disabled", entity: { type: "user", id: ctx.user.id, label: ctx.user.email } });
   commit();
+  revalidatePath("/", "layout");
   return { ok: true, message: "Two-factor authentication is off." };
 }
 

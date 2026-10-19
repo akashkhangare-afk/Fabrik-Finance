@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { FarmProfile, PurposeTag } from "@/lib/types";
 import { moneyCompact } from "@/lib/format";
@@ -49,7 +48,6 @@ export function ProfileForm({ profile, canEdit, syncedAt, extras }: { profile: F
   const [p, setP] = useState(profile);
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   const up = <K extends keyof FarmProfile>(k: K, v: FarmProfile[K]) => setP((x) => ({ ...x, [k]: v }));
   const num = (s: string) => (s.trim() === "" ? undefined : Number(s.replace(/[,$]/g, "")));
   const ownersTotal = p.owners.reduce((s, o) => s + (Number(o.pct) || 0), 0);
@@ -58,7 +56,6 @@ export function ProfileForm({ profile, canEdit, syncedAt, extras }: { profile: F
     start(async () => {
       const r = await saveProfile({ ...p, owners: p.owners.map((o) => ({ ...o, pct: Number(o.pct) || 0 })) });
       toast(r.ok ? { tone: "success", title: r.message ?? "Saved" } : { tone: "error", title: r.error });
-      router.refresh();
     });
 
   return (

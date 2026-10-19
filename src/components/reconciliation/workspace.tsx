@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, CircleAlert, Copy, Clock, Lock, Sparkles } from "lucide-react";
 import type { StatementLine } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -50,12 +49,10 @@ export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outst
   const [confirm, setConfirm] = useState(false);
   const [showMatched, setShowMatched] = useState(false);
   const toast = useToast();
-  const router = useRouter();
   const act = (a: Parameters<typeof recAction>[1]) =>
     start(async () => {
       const r = await recAction(recId, a);
       toast(r.ok ? { tone: "success", title: r.message ?? "Updated" } : { tone: "error", title: r.error });
-      router.refresh();
     });
   const exceptions = lines.filter((l) => l.state !== "matched");
   const matched = lines.filter((l) => l.state === "matched");

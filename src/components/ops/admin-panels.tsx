@@ -12,7 +12,6 @@ import { cn } from "@/lib/cn";
 type R = { ok: true; message?: string } | { ok: false; error: string };
 
 function useSave() {
-  const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
   const save = (fn: () => Promise<R>, body?: string) =>
@@ -20,7 +19,6 @@ function useSave() {
       const r = await fn();
       if (r.ok) toast({ tone: "success", title: r.message ?? "Saved", body });
       else toast({ tone: "error", title: r.error });
-      router.refresh();
     });
   return { pending, save };
 }

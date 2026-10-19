@@ -23,7 +23,6 @@ export function useOrgNav() {
         }
       }
       router.push(href);
-      router.refresh();
     });
   return { pending, go };
 }
@@ -64,7 +63,6 @@ export function AutoSwitch({ orgId, orgName, to }: { orgId: string; orgName: str
     switchOrg(orgId).then((r) => {
       if (!r.ok) toast({ tone: "error", title: r.error });
       router.replace(to);
-      router.refresh();
     });
   }, [orgId, to, router, toast]);
   return (

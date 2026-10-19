@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { closeAction } from "@/app/actions/app";
 import { Button, Textarea } from "@/components/ui/primitives";
 import { Modal, useToast } from "@/components/ui/client";
@@ -11,14 +10,12 @@ export function CloseActions({ period, status, bookkeeperDone, ready, blocking, 
   const [modal, setModal] = useState<"bookkeeper_review" | "approve" | "reopen">();
   const [note, setNote] = useState("");
   const toast = useToast();
-  const router = useRouter();
   const go = (a: "bookkeeper_review" | "approve" | "reopen") =>
     start(async () => {
       const r = await closeAction(period, a, note || undefined);
       toast(r.ok ? { tone: "success", title: r.message ?? "Done" } : { tone: "error", title: r.error });
       setModal(undefined);
       setNote("");
-      router.refresh();
     });
   if (status === "closed") return canApprove ? <Button variant="ghost" onClick={() => setModal("reopen")}>Reopen period</Button> : null;
   return (

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, Copy, FileText, History, Paperclip, Sparkles, ShieldAlert, User, Bot, Cog } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
@@ -100,7 +99,6 @@ function TransactionDrawer({ id, onClose, canReview, canAskClient, staff }: { id
   const [question, setQuestion] = useState("");
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   const elapsed = useHandlingTimer(id);
 
   const load = (txId: string) =>
@@ -121,7 +119,6 @@ function TransactionDrawer({ id, onClose, canReview, canAskClient, staff }: { id
     start(async () => {
       const r = await fn();
       toast(r.ok ? { tone: "success", title: r.message ?? "Done" } : { tone: "error", title: r.error ?? "Failed" });
-      router.refresh();
       if (r.ok && close) onClose();
       else if (r.ok && id) void load(id);
     });

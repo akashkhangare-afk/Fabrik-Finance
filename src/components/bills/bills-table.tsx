@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { FileText, Paperclip } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
@@ -34,7 +33,6 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
   const [tab, setTab] = useState<(typeof TABS)[number][0]>("open");
   const [pending, start] = useTransition();
   const toast = useToast();
-  const router = useRouter();
   const inTab = (k: (typeof TABS)[number][0], b: Row) =>
     k === "all" || (b.status !== "paid" && b.status !== "rejected");
   const rows = bills.filter((b) => inTab(tab, b));
@@ -42,7 +40,6 @@ export function BillsTable({ bills, canApprove }: { bills: Row[]; canApprove: bo
     start(async () => {
       const r = await decideBill(id, a);
       toast(r.ok ? { tone: "success", title: r.message ?? "Done" } : { tone: "error", title: r.error });
-      router.refresh();
     });
   return (
     <Card className="overflow-hidden">

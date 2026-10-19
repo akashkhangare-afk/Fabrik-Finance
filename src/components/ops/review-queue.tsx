@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Check, CheckCheck, Loader2, MessageSquare, PartyPopper, Pencil, ShieldAlert, X } from "lucide-react";
 import { approveTxn, askClientAboutTxn, bulkApproveTxns, draftQuestion, escalateTxn } from "@/app/actions/app";
 import { AiBadge, Badge, Button, Card, ConfidenceBadge, EmptyState, Input, Select, Textarea } from "@/components/ui/primitives";
@@ -41,9 +40,7 @@ const isTyping = (el: EventTarget | null) => {
 };
 
 export function ReviewQueue({ rows, accounts, thresholds, shortcuts }: { rows: ReviewRow[]; accounts: AccountOpt[]; thresholds: { autoApprove: number; review: number }; shortcuts: boolean }) {
-  const router = useRouter();
   const toast = useToast();
-  const [, startRefresh] = useTransition();
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const visible = useMemo(() => rows.filter((r) => !hidden.has(r.id)), [rows, hidden]);
   const [focus, setFocus] = useState(0);
@@ -81,10 +78,9 @@ export function ReviewQueue({ rows, accounts, thresholds, shortcuts }: { rows: R
         return r.ok;
       } finally {
         setBusy(null);
-        startRefresh(() => router.refresh());
       }
     },
-    [router, toast],
+    [toast],
   );
 
   const approve = useCallback((r: ReviewRow) => perform(r.id, () => approveTxn(r.id, { humanSeconds: elapsed() }), [r.id]), [perform, elapsed]);

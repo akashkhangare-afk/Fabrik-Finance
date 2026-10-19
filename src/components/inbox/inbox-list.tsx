@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Bot, Check, FileText, HandCoins, Landmark, MessageSquare, Plug, Receipt, Sparkles, Upload, CalendarCheck } from "lucide-react";
 import type { InboxItem, InboxItemType } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -59,14 +58,12 @@ export function InboxList({ items, canUpload, canApproveBills, demo }: { items: 
 
 function useAct() {
   const toast = useToast();
-  const router = useRouter();
   const [pending, start] = useTransition();
   const act = (fn: () => Promise<{ ok: boolean; message?: string; error?: string }>) =>
     start(async () => {
       const r = await fn();
       if (r.ok) toast({ tone: "success", title: r.message ?? "Done" });
       else toast({ tone: "error", title: r.error ?? "Something went wrong" });
-      router.refresh();
     });
   return { pending, act };
 }
