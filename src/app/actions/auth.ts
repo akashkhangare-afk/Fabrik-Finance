@@ -9,7 +9,7 @@ import { newId } from "@/server/db/ids";
 import { checkPasswordPolicy, hashPassword, verifyPassword } from "@/server/auth/password";
 import { decrypt, encrypt, randomToken, sha256 } from "@/server/auth/crypto";
 import { generateSecret, otpauthUri, verifyTotp } from "@/server/auth/totp";
-import { clearFailures, clientIp, createSession, currentSession, destroySession, getCtx, isThrottled, recordFailure, roleInOrg, throttleKey } from "@/server/auth/session";
+import { clearFailures, clientIp, createSession, currentSession, destroySession, getCtx, isThrottled, recordFailure, roleInOrg, throttleKey, writeSessionCookie } from "@/server/auth/session";
 import { recordAudit } from "@/server/services/audit";
 import { sendEmail } from "@/server/services/notifications";
 import type { ActionResult } from "@/server/action";
@@ -54,6 +54,7 @@ export async function verifyMfa(_: unknown, form: FormData): Promise<{ error?: s
   }
   clearFailures(key);
   cur.session.mfaPending = false;
+  await writeSessionCookie(cur.session);
   recordAudit(null, { action: "auth.mfa_verified", entity: { type: "user", id: cur.user.id, label: cur.user.email }, ip }, { type: "user", id: cur.user.id, name: cur.user.name });
   commit();
   redirect(cur.user.staffRole ? "/ops" : "/");
@@ -108,6 +109,7 @@ export async function switchOrg(orgId: string): Promise<ActionResult> {
   if (!ctx) return { ok: false, error: "Sign in again." };
   if (!roleInOrg(ctx.user, orgId)) return { ok: false, error: "You don't have access to that organization." };
   ctx.session.activeOrgId = orgId;
+  await writeSessionCookie(ctx.session);
   recordAudit(ctx, { orgId, action: "auth.organization_switched", entity: { type: "organization", id: orgId } });
   commit();
   return { ok: true };

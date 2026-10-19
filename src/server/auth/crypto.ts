@@ -11,6 +11,11 @@ function secret(name: "SESSION_SECRET" | "ENCRYPTION_KEY"): string {
   return `${DEV_SECRET}:${name}`;
 }
 
+/** True when sessions are signed with a deployment-specific secret rather than the public dev key. */
+export function hasSessionSecret(): boolean {
+  return (process.env.SESSION_SECRET?.length ?? 0) >= 16;
+}
+
 let encKey: Buffer | undefined;
 function encryptionKey(): Buffer {
   encKey ??= scryptSync(secret("ENCRYPTION_KEY"), "fabrik-at-rest-v1", 32);

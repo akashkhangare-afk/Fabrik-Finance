@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ID, Organization, Role, Session, User } from "@/lib/types";
 import { commit, db } from "@/server/db/store";
-import { randomToken, signedValue, verifySigned } from "./crypto";
+import { hasSessionSecret, randomToken, signedValue, verifySigned } from "./crypto";
 import { can, ForbiddenError, type Permission } from "./permissions";
 
 export const SESSION_COOKIE = "fabrik_session";
@@ -57,20 +57,43 @@ export async function createSession(user: User, opts: { mfaPending: boolean }): 
   data.sessions = data.sessions.filter((s) => s.userId !== user.id || Date.parse(s.expiresAt) > nowMs);
   data.sessions.push(session);
   commit();
+  await writeSessionCookie(session);
+  return session;
+}
+
+/**
+ * The cookie carries the signed session record, not just its id. Serverless hosts (Vercel) run
+ * several instances that each hold their own copy of the JSON datastore, so an instance that has
+ * never seen this session restores it from the cookie. Call again whenever a carried field changes.
+ * Server-side revocation is therefore per instance until the datastore moves to PostgreSQL.
+ */
+export async function writeSessionCookie(session: Session): Promise<void> {
+  const { id, userId, activeOrgId, mfaPending, createdAt, expiresAt } = session;
+  const payload = Buffer.from(JSON.stringify({ id, userId, activeOrgId, mfaPending, createdAt, expiresAt })).toString("base64url");
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, signedValue(session.id), {
+  jar.set(SESSION_COOKIE, signedValue(payload), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: ABSOLUTE_MS / 1000,
+    maxAge: Math.max(0, Math.floor((Date.parse(expiresAt) - Date.now()) / 1000)),
   });
-  return session;
+}
+
+function readSessionCookie(value: string | undefined): Omit<Session, "lastSeenAt"> | null {
+  const payload = verifySigned(value);
+  if (!payload) return null;
+  try {
+    const s = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Omit<Session, "lastSeenAt">;
+    return typeof s.id === "string" && typeof s.userId === "string" && typeof s.expiresAt === "string" ? s : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function destroySession(): Promise<void> {
   const jar = await cookies();
-  const id = verifySigned(jar.get(SESSION_COOKIE)?.value);
+  const id = readSessionCookie(jar.get(SESSION_COOKIE)?.value)?.id;
   if (id) {
     const data = db();
     data.sessions = data.sessions.filter((s) => s.id !== id);
@@ -81,14 +104,18 @@ export async function destroySession(): Promise<void> {
 
 export async function currentSession(): Promise<{ session: Session; user: User } | null> {
   const jar = await cookies();
-  const id = verifySigned(jar.get(SESSION_COOKIE)?.value);
-  if (!id) return null;
+  const carried = readSessionCookie(jar.get(SESSION_COOKIE)?.value);
+  if (!carried) return null;
   const data = db();
-  const session = data.sessions.find((s) => s.id === id);
-  if (!session) return null;
+  const known = data.sessions.find((s) => s.id === carried.id);
+  // Restoring an unseen session trusts the signature alone, so never do it with the public dev key.
+  if (!known && !hasSessionSecret()) return null;
+  // The cookie holds the latest org switch / MFA step, which may have been handled by another instance.
+  const session = known ? Object.assign(known, carried) : { ...carried, lastSeenAt: new Date().toISOString() };
+  if (!known) data.sessions.push(session);
   const nowMs = Date.now();
   if (Date.parse(session.expiresAt) < nowMs || nowMs - Date.parse(session.lastSeenAt) > IDLE_MS) {
-    data.sessions = data.sessions.filter((s) => s.id !== id);
+    data.sessions = data.sessions.filter((s) => s.id !== session.id);
     commit();
     return null;
   }
