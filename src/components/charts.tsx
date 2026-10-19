@@ -203,19 +203,13 @@ export function ScenarioChart({ data, buffer, height = 240 }: { data: { label: s
   );
 }
 
-// ─── Aging bar (single horizontal stacked bar with 2px surface gaps) ─────────
+// ─── AR aging buckets ────────────────────────────────────────────────────────
 
-export function AgingBar({ buckets }: { buckets: { label: string; value: number; tone: "ok" | "warn" | "risk" | "crit" }[] }) {
-  const total = buckets.reduce((s, b) => s + b.value, 0) || 1;
+export function AgingBuckets({ buckets }: { buckets: { label: string; value: number; tone: "ok" | "warn" | "risk" | "crit" }[] }) {
   const color = { ok: SERIES.s1, warn: "#e9b949", risk: SERIES.s2, crit: "#c2452f" };
   return (
     <div>
-      <div className="flex h-3 w-full gap-[2px] rounded-full overflow-hidden" role="img" aria-label={buckets.map((b) => `${b.label} ${moneyCompact(b.value)}`).join(", ")}>
-        {buckets.filter((b) => b.value > 0).map((b) => (
-          <div key={b.label} title={`${b.label}: ${moneyCompact(b.value)}`} style={{ width: `${(b.value / total) * 100}%`, background: color[b.tone] }} />
-        ))}
-      </div>
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {buckets.map((b) => (
           <div key={b.label}>
             <div className="flex items-center gap-1.5 text-[12px] text-muted">

@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate, prettyDateTime } from "@/lib/dates";
 import { approveReminder, discardReminder, draftReminder } from "@/app/actions/app";
-import { AiBadge, Badge, Button, Card, EmptyState, Field, Input, Notice, StatusPill, Textarea } from "@/components/ui/primitives";
+import { AiBadge, Button, Card, EmptyState, Field, Input, Notice, StatusPill, Textarea } from "@/components/ui/primitives";
 import { Drawer, useToast } from "@/components/ui/client";
 
 interface Row {
@@ -27,11 +27,11 @@ interface Row {
   reminders: CollectionReminder[];
 }
 
-export function CollectTable({ rows, openId, canDraft, canApprove }: { rows: Row[]; openId?: string; canDraft: boolean; canApprove: boolean }) {
+export function CollectTable({ rows, openId, canDraft, canApprove, demo }: { rows: Row[]; openId?: string; canDraft: boolean; canApprove: boolean; demo: boolean }) {
   const [open, setOpen] = useState(openId);
   useEffect(() => setOpen(openId), [openId]);
   const inv = rows.find((r) => r.id === open);
-  if (!rows.length) return <Card><EmptyState title="No open invoices" description="Everyone has paid. Nice." /></Card>;
+  if (!rows.length) return <Card><EmptyState title="No open invoices" /></Card>;
   return (
     <>
       <Card className="overflow-hidden">
@@ -79,12 +79,12 @@ export function CollectTable({ rows, openId, canDraft, canApprove }: { rows: Row
           </table>
         </div>
       </Card>
-      {inv && <ReminderDrawer inv={inv} onClose={() => setOpen(undefined)} canApprove={canApprove} />}
+      {inv && <ReminderDrawer inv={inv} onClose={() => setOpen(undefined)} canApprove={canApprove} demo={demo} />}
     </>
   );
 }
 
-function ReminderDrawer({ inv, onClose, canApprove }: { inv: Row; onClose: () => void; canApprove: boolean }) {
+function ReminderDrawer({ inv, onClose, canApprove, demo }: { inv: Row; onClose: () => void; canApprove: boolean; demo: boolean }) {
   const draft = inv.reminders.filter((r) => r.status === "draft").at(-1);
   const [subject, setSubject] = useState(draft?.subject ?? "");
   const [body, setBody] = useState(draft?.body ?? "");
@@ -126,7 +126,6 @@ function ReminderDrawer({ inv, onClose, canApprove }: { inv: Row; onClose: () =>
         <div className="text-center py-10">
           <div className="size-12 rounded-2xl bg-ai-50 text-ai-600 flex items-center justify-center mx-auto"><Sparkles className="size-5" /></div>
           <h3 className="mt-3 text-[16px] font-semibold">Generate a professional reminder</h3>
-          <p className="text-[13px] text-muted mt-1 max-w-sm mx-auto">Fabrik writes the message using the invoice details and how late it is. You review and edit it before anything is sent.</p>
           <Button variant="ai" className="mt-5" disabled={pending} onClick={() => start(async () => {
             const r = await draftReminder(inv.id);
             if (!r.ok) toast({ tone: "error", title: r.error });
@@ -137,11 +136,11 @@ function ReminderDrawer({ inv, onClose, canApprove }: { inv: Row; onClose: () =>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center gap-2"><AiBadge label="AI draft — review before sending" /><Badge tone={draft.tone === "friendly" ? "ok" : "warn"}>{draft.tone} tone</Badge></div>
+          <AiBadge label="AI draft — review before sending" />
           <Field label="To"><Input value={`${inv.contact ?? ""} <${inv.email ?? "no email on file"}>`} disabled /></Field>
           <Field label="Subject"><Input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={200} /></Field>
           <Field label="Message"><Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={14} className="font-normal" /></Field>
-          <Notice tone="info">Demo: approved emails are delivered to the development outbox, not to the customer.</Notice>
+          {demo && <Notice tone="info">Demo: approved emails are delivered to the development outbox, not to the customer.</Notice>}
         </div>
       )}
       {inv.reminders.filter((r) => r.status === "sent").length > 0 && (
