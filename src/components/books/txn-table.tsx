@@ -39,20 +39,20 @@ export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canR
         <table className="w-full text-[13px]">
           <thead>
             <tr className="text-[12px] text-muted text-left bg-surface-2 border-b border-line whitespace-nowrap">
-              <th className="px-5 py-2.5 font-medium w-[96px]">Date</th>
+              <th className="pl-5 pr-3 py-2.5 font-medium w-[84px]">Date</th>
               <th className="px-3 py-2.5 font-medium">Vendor / Description</th>
               <th className="px-3 py-2.5 font-medium text-right">Amount</th>
               <th className="px-3 py-2.5 font-medium">Account</th>
               <th className="px-3 py-2.5 font-medium">Category</th>
               <th className="px-3 py-2.5 font-medium">AI confidence</th>
-              <th className="px-5 py-2.5 font-medium">Status</th>
+              <th className="pl-3 pr-5 py-2.5 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} onClick={() => setOpen(r.id)} onKeyDown={(e) => e.key === "Enter" && setOpen(r.id)} tabIndex={0} className="border-b border-line last:border-0 hover:bg-surface-2 cursor-pointer focus-visible:bg-brand-50/50 outline-none">
-                <td className="px-5 py-2.5 text-ink-2 whitespace-nowrap tabular">{prettyDate(r.date)}</td>
-                <td className="px-3 py-2.5 max-w-[300px]">
+              <tr key={r.id} onClick={() => setOpen(r.id)} onKeyDown={(e) => e.key === "Enter" && setOpen(r.id)} tabIndex={0} className="border-b border-line last:border-0 hover:bg-surface-2 cursor-pointer focus-visible:bg-brand-50/60 focus-visible:outline-none focus-visible:shadow-[inset_3px_0_0_var(--color-brand-600)] outline-none">
+                <td className="pl-5 pr-3 py-2.5 text-ink-2 whitespace-nowrap tabular">{prettyDate(r.date)}</td>
+                <td className="px-3 py-2.5 max-w-[240px]">
                   <div className="font-medium text-ink truncate flex items-center gap-1.5">
                     {r.vendor}
                     {r.hasDoc && <Paperclip className="size-3 text-subtle shrink-0" aria-label="Has document" />}
@@ -61,13 +61,15 @@ export function TxnTable({ rows, total, page, pageSize, thresholds, openId, canR
                   <div className="text-[11.5px] text-muted font-mono truncate">{r.description}</div>
                 </td>
                 <td className={cn("px-3 py-2.5 text-right tabular whitespace-nowrap font-medium", r.amount > 0 && "text-ok-600")}>{money(r.amount, { decimals: true, sign: r.amount > 0 })}</td>
-                <td className="px-3 py-2.5 text-muted whitespace-nowrap">{r.bank}</td>
-                <td className="px-3 py-2.5 whitespace-nowrap max-w-[220px] truncate">
-                  <span className={cn(r.suggested && "text-ai-600")}>{r.category}</span>
-                  {r.suggested && <Sparkles className="inline size-3 ml-1 text-ai-500" aria-label="AI suggestion, not yet final" />}
+                <td className="px-3 py-2.5 text-muted whitespace-nowrap"><span className="block max-w-[150px] 2xl:max-w-[220px] truncate" title={r.bank}>{r.bank}</span></td>
+                <td className="px-3 py-2.5 whitespace-nowrap">
+                  <span className="flex items-center gap-1 max-w-[170px] 2xl:max-w-[240px]" title={r.category}>
+                    <span className={cn("truncate", r.suggested && "text-ai-600")}>{r.category}</span>
+                    {r.suggested && <Sparkles className="size-3 shrink-0 text-ai-500" aria-label="AI suggestion, not yet final" />}
+                  </span>
                 </td>
                 <td className="px-3 py-2.5"><ConfidenceBadge value={r.confidence} thresholds={thresholds} /></td>
-                <td className="px-5 py-2.5"><StatusPill status={r.status} /></td>
+                <td className="pl-3 pr-5 py-2.5 whitespace-nowrap"><StatusPill status={r.status} /></td>
               </tr>
             ))}
           </tbody>

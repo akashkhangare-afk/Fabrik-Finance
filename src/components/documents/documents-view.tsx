@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import { money } from "@/lib/format";
 import { prettyDate } from "@/lib/dates";
 import { billFromDocument, confirmDocMatch, correctDocFields, rejectDocMatch, uploadDocuments, uploadSampleInvoice } from "@/app/actions/app";
-import { Badge, Button, Card, EmptyState, Field, Input, Notice, Select, StatusPill } from "@/components/ui/primitives";
+import { Badge, Button, Card, EmptyState, Field, Input, Notice, Select, StatusPill, pillListClass, pillClass, pillCountClass } from "@/components/ui/primitives";
 import { Drawer, useToast } from "@/components/ui/client";
 import { useQueryState } from "@/components/books/filters";
 
@@ -32,6 +32,7 @@ export interface DocRow {
 }
 
 const KIND_LABEL: Record<string, string> = { invoice: "Invoice", receipt: "Receipt", bank_statement: "Bank statement", credit_card_statement: "Card statement", entity_document: "Entity document", farm_record: "Farm record", tax_document: "Tax document", other: "Other" };
+const PAGE = 50;
 const GROUPS = [["", "All", "all"], ["invoices", "Invoices", "invoices"], ["receipts", "Receipts", "receipts"], ["statements", "Statements", "statements"], ["records", "Entity & farm", "records"]] as const;
 
 export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMatch, demo, extras, expenseAccounts }: { rows: DocRow[]; counts: Record<string, number>; kind?: string; q?: string; openId?: string; canUpload: boolean; canMatch: boolean; demo: boolean; extras: boolean; expenseAccounts: { id: string; name: string }[] }) {
@@ -45,14 +46,18 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
   const doc = rows.find((r) => r.id === open);
+  // Long libraries render in pages of 50 so the list stays quick to scan; filters reset the page.
+  const [limit, setLimit] = useState(PAGE);
+  useEffect(() => setLimit(PAGE), [kind, q]);
+  const shown = rows.slice(0, limit);
   return (
     <div className="space-y-5">
       {canUpload && <UploadZone demo={demo} onUploaded={(id) => setOpen(id)} />}
       <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between">
-        <div className="flex gap-1 overflow-x-auto" role="tablist" aria-label="Document type">
+        <div className={pillListClass} role="tablist" aria-label="Document type">
           {GROUPS.filter(([v]) => extras || v !== "records").map(([v, label, key]) => (
-            <button key={v} role="tab" aria-selected={(kind ?? "") === v} onClick={() => set({ kind: v || undefined })} className={cn("h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5", (kind ?? "") === v ? "bg-ink text-white" : "text-ink-2 hover:bg-sunken")}>
-              {label} <span className={cn("text-[11.5px] tabular", (kind ?? "") === v ? "text-white/70" : "text-muted")}>{counts[key] ?? 0}</span>
+            <button key={v} role="tab" aria-selected={(kind ?? "") === v} onClick={() => set({ kind: v || undefined })} className={pillClass((kind ?? "") === v)}>
+              {label} <span className={pillCountClass((kind ?? "") === v)}>{counts[key] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -78,8 +83,8 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} tabIndex={0} onClick={() => setOpen(r.id)} onKeyDown={(e) => e.key === "Enter" && setOpen(r.id)} className="border-b border-line last:border-0 hover:bg-surface-2 cursor-pointer outline-none focus-visible:bg-brand-50/50">
+                {shown.map((r) => (
+                  <tr key={r.id} tabIndex={0} onClick={() => setOpen(r.id)} onKeyDown={(e) => e.key === "Enter" && setOpen(r.id)} className="border-b border-line last:border-0 hover:bg-surface-2 cursor-pointer outline-none focus-visible:bg-brand-50/60 focus-visible:shadow-[inset_3px_0_0_var(--color-brand-600)]">
                     <td className="px-5 py-2.5 max-w-[300px]">
                       <div className="flex items-center gap-2.5">
                         {r.mimeType.startsWith("image/") ? <FileImage className="size-4 text-muted shrink-0" /> : <FileText className="size-4 text-muted shrink-0" />}
@@ -90,7 +95,7 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
                       </div>
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-ink-2">{KIND_LABEL[r.kind]}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap max-w-[220px] truncate">{r.extraction?.vendor ?? "—"}{r.extraction?.documentNumber ? <span className="text-muted"> · {r.extraction.documentNumber}</span> : null}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap"><span className="block max-w-[240px] truncate">{r.extraction?.vendor ?? "—"}{r.extraction?.documentNumber ? <span className="text-muted"> · {r.extraction.documentNumber}</span> : null}</span></td>
                     <td className="px-3 py-2.5 text-right tabular whitespace-nowrap">{r.extraction?.total != null && r.extraction.total > 0 ? money(r.extraction.total, { decimals: true }) : "—"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       {r.matched ? (
@@ -106,6 +111,14 @@ export function DocumentsView({ rows, counts, kind, q, openId, canUpload, canMat
                 ))}
               </tbody>
             </table>
+            <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-line text-[12.5px] text-muted">
+              <span className="tabular">{shown.length.toLocaleString("en-US")} of {rows.length.toLocaleString("en-US")}</span>
+              {rows.length > limit && (
+                <Button size="sm" onClick={() => setLimit((l) => l + PAGE)}>
+                  Show {Math.min(PAGE, rows.length - limit)} more
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </Card>
