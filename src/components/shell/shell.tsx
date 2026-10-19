@@ -36,12 +36,14 @@ interface Props {
   children: ReactNode;
   groups: NavGroup[];
   collapsed: boolean;
-  user: { name: string; email: string; hue: number; role: string; mfa: boolean };
+  user: { name: string; email: string; hue: number; role: string };
   org: { id: string; name: string; isDemo: boolean };
-  orgs: { id: string; name: string; industry: string }[];
+  orgs: { id: string; name: string }[];
   notifications: { id: string; title: string; body?: string; href?: string; kind: string; read: boolean; at: string }[];
   sync?: { status: string; at?: string };
   isStaff: boolean;
+  /** Global search and the Ctrl K palette (SHOW_EXTRAS). */
+  search: boolean;
 }
 
 function isActive(pathname: string, href: string) {
@@ -50,13 +52,14 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Shell({ children, groups, collapsed: initialCollapsed, user, org, orgs, notifications, sync, isStaff }: Props) {
+export function Shell({ children, groups, collapsed: initialCollapsed, user, org, orgs, notifications, sync, isStaff, search }: Props) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   useEffect(() => setMobileOpen(false), [pathname]);
   useEffect(() => {
+    if (!search) return;
     const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -65,7 +68,7 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
     };
     document.addEventListener("keydown", h);
     return () => document.removeEventListener("keydown", h);
-  }, []);
+  }, [search]);
   const toggle = () => {
     const next = !collapsed;
     setCollapsed(next);
@@ -148,11 +151,11 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
               <Menu className="size-5" />
             </button>
             <OrgSwitcher org={org} orgs={orgs} />
-            <button onClick={() => setPaletteOpen(true)} className="ml-1 hidden md:flex items-center gap-2 h-9 w-[min(34vw,360px)] rounded-lg border border-line bg-surface px-3 text-[13px] text-subtle hover:border-line-strong transition" aria-label="Search">
+            {search && <button onClick={() => setPaletteOpen(true)} className="ml-1 hidden md:flex items-center gap-2 h-9 w-[min(34vw,360px)] rounded-lg border border-line bg-surface px-3 text-[13px] text-subtle hover:border-line-strong transition" aria-label="Search">
               <Search className="size-4" />
               <span className="flex-1 text-left truncate">Search everything…</span>
               <Kbd>Ctrl K</Kbd>
-            </button>
+            </button>}
             <div className="flex-1" />
             {sync && (
               <Link href="/integrations" className={cn("hidden xl:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px]", sync.status === "connected" ? "text-muted hover:bg-sunken" : "text-crit-600 bg-crit-50")} title="QuickBooks Online sync">
@@ -160,16 +163,18 @@ export function Shell({ children, groups, collapsed: initialCollapsed, user, org
                 {sync.status === "connected" ? `QuickBooks synced ${sync.at ?? ""}` : "QuickBooks needs attention"}
               </Link>
             )}
-            <button onClick={() => setPaletteOpen(true)} className="md:hidden size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Search">
-              <Search className="size-[18px]" />
-            </button>
+            {search && (
+              <button onClick={() => setPaletteOpen(true)} className="md:hidden size-9 rounded-lg hover:bg-sunken flex items-center justify-center" aria-label="Search">
+                <Search className="size-[18px]" />
+              </button>
+            )}
             <Notifications items={notifications} />
             <UserMenu user={user} isStaff={isStaff} />
           </div>
         </header>
         <main id="main" className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1440px] mx-auto">{children}</main>
       </div>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      {search && <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />}
       {pathname !== "/ask" && <AskLauncher />}
     </div>
   );
@@ -223,10 +228,7 @@ function OrgSwitcher({ org, orgs }: { org: Props["org"]; orgs: Props["orgs"] }) 
                 }
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left hover:bg-sunken"
               >
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-medium truncate">{o.name}</div>
-                  <div className="text-[11.5px] text-muted truncate">{o.industry}</div>
-                </div>
+                <div className="min-w-0 flex-1 text-[13px] font-medium truncate">{o.name}</div>
                 {o.id === org.id && <Check className="size-4 text-brand-600" />}
               </button>
             ))}
@@ -282,7 +284,6 @@ function Notifications({ items }: { items: Props["notifications"] }) {
               </Link>
             ))}
           </div>
-          <div className="px-4 py-2.5 border-t border-line text-[11.5px] text-muted">Notifications are bundled — never one per transaction.</div>
         </div>
       )}
     </Popover>
@@ -309,10 +310,7 @@ function UserMenu({ user, isStaff }: { user: Props["user"]; isStaff: boolean }) 
           <div className="px-4 py-3 border-b border-line">
             <div className="text-[13.5px] font-semibold">{user.name}</div>
             <div className="text-[12px] text-muted">{user.email}</div>
-            <div className="mt-2 flex gap-1.5 flex-wrap">
-              <Badge tone={isStaff ? "ai" : "brand"}>{user.role}</Badge>
-              <Badge tone={user.mfa ? "ok" : "neutral"}>{user.mfa ? "MFA on" : "MFA off"}</Badge>
-            </div>
+            <Badge tone={isStaff ? "ai" : "brand"} className="mt-2">{user.role}</Badge>
           </div>
           <div className="p-1">
             <Link href="/settings?tab=profile" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] hover:bg-sunken">

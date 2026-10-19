@@ -5,6 +5,7 @@ import { notificationsFor } from "@/server/services/notifications";
 import { ROLE_LABELS } from "@/server/auth/permissions";
 import { Shell, type NavGroup } from "@/components/shell/shell";
 import { prettyDateTime } from "@/lib/dates";
+import { demoMode, showExtras } from "@/server/config";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const review = data.transactions.filter((t) => t.orgId === ctx.org.id && t.status === "needs_review").length;
   const can = (p: Parameters<typeof hasPerm>[1]) => hasPerm(ctx, p);
   const isAccountant = ctx.role === "external_accountant";
+  const extras = showExtras();
 
   const groups: NavGroup[] = [
     {
@@ -28,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       label: "Finance",
       items: [
         { href: "/books", label: "Books", icon: "books", badge: ctx.isStaff && review ? review : undefined },
-        { href: "/reconciliation", label: "Reconciliation", icon: "scale" },
+        ...(ctx.isStaff ? [{ href: "/reconciliation", label: "Reconciliation", icon: "scale" }] : []),
         { href: "/close", label: "Monthly Close", icon: "close" },
         ...(!isAccountant ? [{ href: "/bills", label: "Bills", icon: "bills" }, { href: "/collect", label: "Collect", icon: "collect" }] : []),
       ],
@@ -44,14 +46,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       label: "Documents",
       items: [
         { href: "/documents", label: "Documents", icon: "documents" },
-        { href: "/tax", label: "Tax & Credits", icon: "tax", tag: "Preview" },
+        ...(extras ? [{ href: "/tax", label: "Tax & Credits", icon: "tax", tag: "Preview" }] : []),
       ],
     },
     {
       label: "Manage",
       items: [
         ...(can("integrations:read") ? [{ href: "/integrations", label: "Integrations", icon: "integrations" }] : []),
-        ...(can("team:read") || ctx.isStaff ? [{ href: "/settings", label: "Team & Settings", icon: "settings" }] : []),
+        ...(can("team:read") || ctx.isStaff ? [{ href: "/settings", label: "Settings", icon: "settings" }] : []),
       ],
     },
   ];
@@ -65,7 +67,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         { href: "/ops/review", label: "AI Review Queue", icon: "review" },
         { href: "/ops/clients", label: "Clients", icon: "clients" },
         ...(can("admin:manage") ? [{ href: "/ops/admin", label: "Administration", icon: "admin" }] : []),
-        { href: "/ops/requirements", label: "Requirements", icon: "requirements" },
+        ...(extras ? [{ href: "/ops/requirements", label: "Requirements", icon: "requirements" }] : []),
       ],
     });
   }
@@ -76,12 +78,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <Shell
       groups={groups.filter((g) => g.items.length)}
       collapsed={jar.get("fabrik_sidebar")?.value === "collapsed"}
-      user={{ name: ctx.user.name, email: ctx.user.email, hue: ctx.user.avatarHue, role: ROLE_LABELS[ctx.role], mfa: ctx.user.mfaEnabled }}
-      org={{ id: ctx.org.id, name: ctx.org.name, isDemo: ctx.org.isDemo }}
-      orgs={accessibleOrgs(ctx.user).map((o) => ({ id: o.id, name: o.name, industry: o.industry }))}
+      user={{ name: ctx.user.name, email: ctx.user.email, hue: ctx.user.avatarHue, role: ROLE_LABELS[ctx.role] }}
+      org={{ id: ctx.org.id, name: ctx.org.name, isDemo: ctx.org.isDemo && demoMode() }}
+      orgs={accessibleOrgs(ctx.user).map((o) => ({ id: o.id, name: o.name }))}
       notifications={notificationsFor(ctx).map((n) => ({ id: n.id, title: n.title, body: n.body, href: n.href, kind: n.kind, read: n.read, at: prettyDateTime(n.updatedAt) }))}
       sync={conn ? { status: conn.status, at: conn.lastSyncAt ? prettyDateTime(conn.lastSyncAt) : undefined } : undefined}
       isStaff={ctx.isStaff}
+      search={extras}
     >
       {children}
     </Shell>
