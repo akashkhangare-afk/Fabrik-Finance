@@ -29,7 +29,6 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
   return (
     <div>
       <h2 className="text-[24px] font-semibold tracking-[-0.015em]">Sign in</h2>
-      <p className="text-muted mt-1.5 text-[14px]">Welcome back to your AI finance department.</p>
       {resetDone && <Notice tone="ok" className="mt-5" title="Password updated">Sign in with your new password.</Notice>}
       <form ref={formRef} action={action} className="mt-6 space-y-4">
         <input type="hidden" name="next" value={next ?? ""} />
@@ -44,10 +43,7 @@ export function LoginForm({ demo, password, next, resetDone }: { demo?: DemoAcco
           {pending ? "Signing in…" : "Sign in"}
           {!pending && <ArrowRight className="size-4" />}
         </Button>
-        <div className="flex items-center justify-between text-[13px]">
-          <Link href="/forgot-password" className="text-brand-700 hover:underline">Forgot password?</Link>
-          <span className="text-muted inline-flex items-center gap-1"><ShieldCheck className="size-3.5" /> MFA supported</span>
-        </div>
+        <Link href="/forgot-password" className="block text-[13px] text-brand-700 hover:underline">Forgot password?</Link>
       </form>
       {demo && (
         <div className="mt-8 rounded-2xl border border-line bg-surface-2 p-4">
@@ -105,14 +101,14 @@ export function MfaForm({ email, demoCode }: { email: string; demoCode?: string 
   );
 }
 
-export function ForgotForm() {
+export function ForgotForm({ demo }: { demo: boolean }) {
   const [state, action, pending] = useActionState(requestPasswordReset, {});
   if (state?.sent)
     return (
       <div>
         <h2 className="text-[24px] font-semibold">Check your email</h2>
         <p className="text-muted mt-2 text-[14px]">If an account exists for that address, we&apos;ve sent a link to reset your password. It expires in 1 hour.</p>
-        <p className="text-[12px] text-muted mt-4">Demo: emails are delivered to the development outbox (Operations → Admin).</p>
+        {demo && <p className="text-[12px] text-muted mt-4">Demo: emails are delivered to the development outbox (Operations → Admin).</p>}
         <Link href="/login" className="block mt-6 text-[13px] text-brand-700 hover:underline">← Back to sign in</Link>
       </div>
     );
