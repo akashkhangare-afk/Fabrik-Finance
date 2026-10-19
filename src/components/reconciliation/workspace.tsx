@@ -40,13 +40,12 @@ interface Props {
   };
   lines: StatementLine[];
   outstanding: BookItemView[];
-  startBalance: number;
   accounts: { id: string; name: string; subtype: string }[];
   canWork: boolean;
   canApprove: boolean;
 }
 
-export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outstanding, startBalance, accounts, canWork, canApprove }: Props) {
+export function RecWorkspace({ recId, approved, isCard, summary: s, lines, outstanding, accounts, canWork, canApprove }: Props) {
   const [pending, start] = useTransition();
   const [confirm, setConfirm] = useState(false);
   const [showMatched, setShowMatched] = useState(false);
