@@ -1,6 +1,6 @@
 # Fabrik Finance — App Workflow
 
-> **Last updated:** 2026-10-19 · matches branch `design/twisty-theme` (main + speed changes + UI redesign + new visual theme)
+> **Last updated:** 2026-10-19 · matches `main` (speed changes, UI redesign, sign-in entry rule, new visual theme)
 > **Keep this file current.** Any change to screens, routes, buttons, statuses, roles, permissions, navigation, server actions, seed data or feature flags must update this file in the same commit. See [How to maintain this file](#16-how-to-maintain-this-file).
 
 This document describes, step by step, how the Fabrik Finance prototype works for every role, and links each step to the PRD.
@@ -120,7 +120,7 @@ The source is `src/app/(app)/layout.tsx`.
 - A click shows a page-shaped loading skeleton immediately (`src/app/(app)/loading.tsx`), and the new page fades in.
 - Hovering or focusing a sidebar link prefetches that page. The prefetched page is reused for up to 30 seconds.
 
-**Look and feel** (visual only — no workflow, route or permission depends on it)
+**Look and feel** (visual only — no workflow, route or permission depends on it; full design system in [DESIGN.md](DESIGN.md))
 - Theme tokens live in `src/app/globals.css`: cool grey canvas, white rounded cards, navy for primary actions and selected states, an orange-red accent for counts and items needing the user, blue for AI.
 - The selected sidebar item, selected filter pill and selected segment are navy pills. Count badges in the sidebar are orange-red.
 - Monthly close progress (Home books card and Monthly Close summary) is shown as a tick-bar meter (`TickBar`), with the same percentage as before.

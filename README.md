@@ -75,6 +75,7 @@ Copy `.env.example` to `.env.local`. Everything is optional for the demo:
 - [`docs/REQUIREMENTS_MATRIX.md`](docs/REQUIREMENTS_MATRIX.md) — 89 requirements with source page, persona, screen, data, dependencies, acceptance criteria, priority, status and classification (**A** PRD-confirmed · **B** proposed Fondo-inspired · **C** future/restricted). Also rendered in-app at `/ops/requirements` when `SHOW_EXTRAS=true`.
 - [`docs/cleanup-audit.md`](docs/cleanup-audit.md) and [`docs/cleanup-summary.md`](docs/cleanup-summary.md) — the PRD scope audit and what the minimal-UX cleanup removed, hid or simplified.
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the whole app workflow, step by step for every role, mapped to the PRD. Update it with every app change.
+- [`docs/DESIGN.md`](docs/DESIGN.md) — the user interface design system: colours, type, shapes, components, charts, motion and accessibility.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — conflicts between sources and how they were resolved, plus technical decisions and known limitations.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layers, AI agents, data model, integrations, production path.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — controls implemented and what deployment must add.
